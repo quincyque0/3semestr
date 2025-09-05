@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\GitHub\\3semestr\\saod\\substringFound\\substringFound.csproj": {}
+    "/Users/a1/Desktop/GitHub/3semestr/saod/substringFound/substringFound.csproj": {}
   },
   "projects": {
-    "C:\\GitHub\\3semestr\\saod\\substringFound\\substringFound.csproj": {
+    "/Users/a1/Desktop/GitHub/3semestr/saod/substringFound/substringFound.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\GitHub\\3semestr\\saod\\substringFound\\substringFound.csproj",
+        "projectUniqueName": "/Users/a1/Desktop/GitHub/3semestr/saod/substringFound/substringFound.csproj",
         "projectName": "substringFound",
-        "projectPath": "C:\\GitHub\\3semestr\\saod\\substringFound\\substringFound.csproj",
-        "packagesPath": "C:\\Users\\Пользователь\\.nuget\\packages\\",
-        "outputPath": "C:\\GitHub\\3semestr\\saod\\substringFound\\obj\\",
+        "projectPath": "/Users/a1/Desktop/GitHub/3semestr/saod/substringFound/substringFound.csproj",
+        "packagesPath": "/Users/a1/.nuget/packages/",
+        "outputPath": "/Users/a1/Desktop/GitHub/3semestr/saod/substringFound/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Пользователь\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "/Users/a1/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -43,6 +43,12 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "LiveChartsCore.SkiaSharpView": {
+              "target": "Package",
+              "version": "[2.0.0-rc5.4, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -59,7 +65,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.304/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

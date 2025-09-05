@@ -1,5 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Diagnostics;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.SKCharts;
 
 class Program
 {
@@ -64,7 +69,7 @@ class Program
         int comparisons = 0;
         var positions = new List<int>();
 
-        if (m == 0) return (positions, comparisons);
+        if (m == 0 || needle == null) return (positions, comparisons);
 
         for (int i = 0; i <= n - m; i++)
         {
@@ -95,7 +100,14 @@ and read my email. Some days I have a lot to read. Soon I need another
 cup of coffee. ";
 
         Console.Write("Введите подстроку для поиска: ");
-        string search = Console.ReadLine();
+        string? search = Console.ReadLine();
+
+        // Проверка на null или пустую строку
+        if (string.IsNullOrEmpty(search))
+        {
+            Console.WriteLine("Ошибка: введена пустая строка!");
+            return;
+        }
 
         var (dPositions, dComparisons) = DirectSearch(text, search);
         var (rPositions, rComparisons) = RabinKarp(text, search);
@@ -131,20 +143,49 @@ cup of coffee. ";
             Console.WriteLine("Методы сделали одинаковое количество сравнений.");
         }
 
-
-
-
         Console.WriteLine("\nАнализ зависимости трудоёмкости Рабина-Карпа от длины подстроки:");
-
-        int maxLen = Math.Min(200, text.Length); 
+        var values = new List<int>();
+        int maxLen = Math.Min(50, text.Length);
+        
         for (int m = 1; m <= maxLen; m++)
         {
             string sub = text.Substring(0, m);
             var (_, rComparisonsLen) = RabinKarp(text, sub);
+            values.Add(rComparisonsLen);
             Console.WriteLine($"Длина подстроки {m}: сравнений = {rComparisonsLen}");
         }
+        var series = new LineSeries<int> 
+        { 
+            Values = values,
+            Name = "Сравнения Рабина-Карпа"
+        };
 
+        var chart = new SKCartesianChart 
+        { 
+            Width = 1000,
+            Height = 600,
+            Series = new[] { series },
+            XAxes = new[] 
+            { 
+                new Axis 
+                { 
+                    Name = "Длина подстроки (символы)",
+                    NameTextSize = 14,
+                    TextSize = 12
+                } 
+            },
+            YAxes = new[] 
+            { 
+                new Axis 
+                { 
+                    Name = "Количество сравнений",
+                    NameTextSize = 14,
+                    TextSize = 12
+                } 
+            }
+        };
+
+        chart.SaveImage("rabin_karp_analysis.png");
+        Process.Start("open", "rabin_karp_analysis.png");
     }
-    
-    
 }

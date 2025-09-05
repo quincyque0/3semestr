@@ -1,0 +1,15 @@
+C:\GitHub\3semestr\saod\substringFound\obj\Debug\net9.0\substringFound.GeneratedMSBuildEditorConfig.editorconfig
+C:\GitHub\3semestr\saod\substringFound\obj\Debug\net9.0\substringFound.AssemblyInfoInputs.cache
+C:\GitHub\3semestr\saod\substringFound\obj\Debug\net9.0\substringFound.AssemblyInfo.cs
+C:\GitHub\3semestr\saod\substringFound\obj\Debug\net9.0\substringFound.csproj.CoreCompileInputs.cache
+C:\GitHub\3semestr\saod\substringFound\obj\Debug\net9.0\substringFound.sourcelink.json
+C:\GitHub\3semestr\saod\substringFound\bin\Debug\net9.0\substringFound.exe
+C:\GitHub\3semestr\saod\substringFound\bin\Debug\net9.0\substringFound.deps.json
+C:\GitHub\3semestr\saod\substringFound\bin\Debug\net9.0\substringFound.runtimeconfig.json
+C:\GitHub\3semestr\saod\substringFound\bin\Debug\net9.0\substringFound.dll
+C:\GitHub\3semestr\saod\substringFound\bin\Debug\net9.0\substringFound.pdb
+C:\GitHub\3semestr\saod\substringFound\obj\Debug\net9.0\substringFound.dll
+C:\GitHub\3semestr\saod\substringFound\obj\Debug\net9.0\refint\substringFound.dll
+C:\GitHub\3semestr\saod\substringFound\obj\Debug\net9.0\substringFound.pdb
+C:\GitHub\3semestr\saod\substringFound\obj\Debug\net9.0\substringFound.genruntimeconfig.cache
+C:\GitHub\3semestr\saod\substringFound\obj\Debug\net9.0\ref\substringFound.dll

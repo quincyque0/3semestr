@@ -5,6 +5,10 @@ using System.Diagnostics;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.SKCharts;
+using LiveChartsCore.SkiaSharpView.Painting;
+using LiveChartsCore.Drawing; 
+using SkiaSharp;
+
 
 class Program
 {
@@ -102,7 +106,6 @@ cup of coffee. ";
         Console.Write("Введите подстроку для поиска: ");
         string? search = Console.ReadLine();
 
-        // Проверка на null или пустую строку
         if (string.IsNullOrEmpty(search))
         {
             Console.WriteLine("Ошибка: введена пустая строка!");
@@ -145,33 +148,45 @@ cup of coffee. ";
 
         Console.WriteLine("\nАнализ зависимости трудоёмкости Рабина-Карпа от длины подстроки:");
         var values = new List<int>();
+        var values2 = new List<int>();
         int maxLen = Math.Min(50, text.Length);
         
         for (int m = 1; m <= maxLen; m++)
         {
             string sub = text.Substring(0, m);
+            
             var (_, rComparisonsLen) = RabinKarp(text, sub);
             values.Add(rComparisonsLen);
-            Console.WriteLine($"Длина подстроки {m}: сравнений = {rComparisonsLen}");
+            // Console.WriteLine($"Длина подстроки {m}: сравнений Рабина-Карпа = {rComparisonsLen}");
+
+            var (_, dComparisonsLen) = DirectSearch(text, sub);
+            values2.Add(dComparisonsLen);
+            // Console.WriteLine($"Длина подстроки {m}: сравнений прямого поиска = {dComparisonsLen}");
         }
-        var series = new LineSeries<int> 
+
+        var series1 = new LineSeries<int> 
         { 
             Values = values,
-            Name = "Сравнения Рабина-Карпа"
+            Name = "Рабин-Карп"
+        };
+
+        var series2 = new LineSeries<int> 
+        { 
+            Values = values2,
+            Name = "Прямой поиск"
         };
 
         var chart = new SKCartesianChart 
         { 
             Width = 1000,
             Height = 600,
-            Series = new[] { series },
+            Series = new[] { series1, series2 },
             XAxes = new[] 
             { 
                 new Axis 
                 { 
                     Name = "Длина подстроки (символы)",
-                    NameTextSize = 14,
-                    TextSize = 12
+                    NameTextSize = 14
                 } 
             },
             YAxes = new[] 
@@ -179,13 +194,12 @@ cup of coffee. ";
                 new Axis 
                 { 
                     Name = "Количество сравнений",
-                    NameTextSize = 14,
-                    TextSize = 12
+                    NameTextSize = 14
                 } 
             }
         };
 
-        chart.SaveImage("rabin_karp_analysis.png");
-        Process.Start("open", "rabin_karp_analysis.png");
+        chart.SaveImage("algorithms_comparison.png");
+        Process.Start("open","algorithms_comparison.png");
+        }
     }
-}

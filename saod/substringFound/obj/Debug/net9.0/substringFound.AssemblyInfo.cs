@@ -14,6 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dc0cec52332bd74736b47a0be83806a1996ea0c8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bd87e451839bc378ba1447f77faa31ff4b313b94")]
 [assembly: System.Reflection.AssemblyProductAttribute("substringFound")]
 [assembly: System.Reflection.AssemblyTitleAttribute("substringFound")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

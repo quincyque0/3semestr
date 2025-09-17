@@ -90,43 +90,42 @@ int get_integer_input(const char* prompt, int res) {
 }
 
 void checkRecords(int filesize, int numberRecords, record2 *records) {
-    int number = get_integer_input("Enter whole number (20 by default): ", 20);
-    
-    if (number > numberRecords) {
-        number = numberRecords;
-        printf("Showing %d records (available: %d)\n", number, numberRecords);
-    }
-    
-    for (int i = 0; i < number; i++) {
-        records[i].a[sizeof(records[i].a)-1] = '\0';
-        records[i].c[sizeof(records[i].c)-1] = '\0';
-        records[i].d[sizeof(records[i].d)-1] = '\0';
-        
-        char a_utf8[sizeof(records[i].a) * 2] = {0};
-        char c_utf8[sizeof(records[i].c) * 2] = {0};
-        char d_utf8[sizeof(records[i].d) * 2] = {0};
-        
-        if (convert_encoding("CP866", "UTF-8", records[i].a, sizeof(records[i].a), a_utf8, sizeof(a_utf8)) == 0 &&
-            convert_encoding("CP866", "UTF-8", records[i].c, sizeof(records[i].c), c_utf8, sizeof(c_utf8)) == 0 &&
-            convert_encoding("CP866", "UTF-8", records[i].d, sizeof(records[i].d), d_utf8, sizeof(d_utf8)) == 0) {
+    int number = get_integer_input("Enter records per page (20 by default): ", 20);
+
+    int totalPages = (numberRecords + number - 1) / number;
+    printf("Total pages: %d (records: %d)\n", totalPages, numberRecords);
+
+    while (1) {
+        int page = get_integer_input("Enter page number (0 to exit): ", 0);
+        if (page <= 0) break;  
+        if (page > totalPages) {
+            printf("Page out of range (1..%d)\n", totalPages);
+            continue;
+        }
+
+        int start = (page - 1) * number;
+        int end = start + number;
+        if (end > numberRecords) end = numberRecords;
+
+        printf("Showing page %d (records %d - %d):\n", page, start+1, end);
+
+        for (int i = start; i < end; i++) {
+            records[i].a[sizeof(records[i].a)-1] = '\0';
+            records[i].c[sizeof(records[i].c)-1] = '\0';
+            records[i].d[sizeof(records[i].d)-1] = '\0';
             
-            printf("%s\t%hu\t%s\t%s\n", a_utf8, records[i].b, c_utf8, d_utf8);
-        } else {
-            printf("Record %d (conversion failed):\n", i+1);
-            printf("a: ");
-            for (int j = 0; j < sizeof(records[i].a) && records[i].a[j] != '\0'; j++) {
-                printf("%02X ", (unsigned char)records[i].a[j]);
+            char a_utf8[sizeof(records[i].a) * 2] = {0};
+            char c_utf8[sizeof(records[i].c) * 2] = {0};
+            char d_utf8[sizeof(records[i].d) * 2] = {0};
+            
+            if (convert_encoding("CP866", "UTF-8", records[i].a, sizeof(records[i].a), a_utf8, sizeof(a_utf8)) == 0 &&
+                convert_encoding("CP866", "UTF-8", records[i].c, sizeof(records[i].c), c_utf8, sizeof(c_utf8)) == 0 &&
+                convert_encoding("CP866", "UTF-8", records[i].d, sizeof(records[i].d), d_utf8, sizeof(d_utf8)) == 0) {
+                
+                printf("%s\t%hu\t%s\t%s\n", a_utf8, records[i].b, c_utf8, d_utf8);
+            } else {
+                printf("Record %d (conversion failed)\n", i+1);
             }
-            printf("\nb: %hu\n", records[i].b);
-            printf("c: ");
-            for (int j = 0; j < sizeof(records[i].c) && records[i].c[j] != '\0'; j++) {
-                printf("%02X ", (unsigned char)records[i].c[j]);
-            }
-            printf("\nd: ");
-            for (int j = 0; j < sizeof(records[i].d) && records[i].d[j] != '\0'; j++) {
-                printf("%02X ", (unsigned char)records[i].d[j]);
-            }
-            printf("\n");
         }
     }
 }

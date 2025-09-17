@@ -1,0 +1,31 @@
+# Билд файлы
+[Bb]in/
+[Oo]bj/
+
+# Файлы IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.userprefs
+
+# NuGet пакеты
+**/[Pp]ackages/*
+*.nupkg
+*.snupkg
+
+# Логи и кэши
+[Dd]ebug/
+[Rr]elease/
+*.log
+*.cache
+
+# macOS
+.DS_Store
+
+# Резервные копии
+*.backup
+*.tmp
+
+# Файлы проектов
+*.csproj.user

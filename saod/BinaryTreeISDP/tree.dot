@@ -1,6 +1,6 @@
 digraph BinaryTree {
-    node [shape=circle, style=filled, fillcolor=lightblue, fontname="Arial"];
-    edge [arrowhead=vee, color=blue];
+    node [shape=circle, style=filled, fillcolor=lightgreen, fontname="Arial"];
+    edge [arrowhead=vee, color=lightbrown];
     node51 [label="51"];
     node26 [label="26"];
     node51 -> node26;

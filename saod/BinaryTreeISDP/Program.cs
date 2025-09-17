@@ -143,8 +143,8 @@ unsafe class Program
     {
         var sb = new StringBuilder();
         sb.AppendLine("digraph BinaryTree {");
-        sb.AppendLine("    node [shape=circle, style=filled, fillcolor=lightblue, fontname=\"Arial\"];");
-        sb.AppendLine("    edge [arrowhead=vee, color=blue];");
+        sb.AppendLine("    node [shape=circle, style=filled, fillcolor=lightgreen, fontname=\"Arial\"];");
+        sb.AppendLine("    edge [arrowhead=vee, color=lightbrown];");
         
         GenerateGraphvizScript(root, sb);
         

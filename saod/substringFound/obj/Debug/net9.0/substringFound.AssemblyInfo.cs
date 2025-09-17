@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("substringFound")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2a8f5842aaf7074c1f2d2518b4c0791e123862d3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bd87e451839bc378ba1447f77faa31ff4b313b94")]
 [assembly: System.Reflection.AssemblyProductAttribute("substringFound")]
 [assembly: System.Reflection.AssemblyTitleAttribute("substringFound")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -24,6 +24,21 @@ unsafe class Program
             }
         }
     }
+    Vertex* CreateNode(int data){
+        Vertex* root = (Vertex*)NativeMemory.Alloc((nuint)sizeof(Vertex));
+        (root)->Data = data;
+        (root)->Left = null;
+        (root)->Right = null;
+        return root ;
+    }
+    void CreateStaticTree(){
+        Root = CreateNode(1);
+        Root->Left = CreateNode(2);
+        Root->Right = CreateNode(3);
+        Root->Right->Left = CreateNode(4);
+        Root->Right->Right = CreateNode(5);
+        Root->Right->Left->Left = CreateNode(6);
+    }
     
     void Insert(Vertex** root, int data)
     {
@@ -46,86 +61,32 @@ unsafe class Program
         }
     }
     
-    void TopDown(Vertex* root)
+    void Td(Vertex* root)
     {
         if (root != null)
         {
-            TopDown(root->Left);
             Console.Write(root->Data + " ");
-            TopDown(root->Right);
+            Td(root->Left);
+            Td(root->Right);
+        }
+    }
+    void Lr(Vertex* root){
+        if(root != null){
+            
+            Lr(root->Left);
+            Console.Write(root->Data + " ");
+            Lr(root->Right);
+        }
+    }
+     void Dt(Vertex* root){
+        if(root != null){
+            
+            Dt(root->Left);
+            Dt(root->Right);
+            Console.Write(root->Data + " ");
         }
     }
     
-
-    void LeftRightBFS(Vertex* root)
-    {
-        if (root == null) return;
-
-        var queue = new System.Collections.Queue();
-        queue.Enqueue((IntPtr)root);
-        
-        Console.WriteLine("Left-right (BFS) traversal:");
-        while (queue.Count > 0)
-        {
-            Vertex* current = (Vertex*)((IntPtr)queue.Dequeue());
-            Console.Write(current->Data + " ");
-            
-            if (current->Left != null)
-                queue.Enqueue((IntPtr)current->Left);
-            if (current->Right != null)
-                queue.Enqueue((IntPtr)current->Right);
-        }
-        Console.WriteLine();
-    }
-
-    void BottomUpBFS(Vertex* root)
-    {
-        if (root == null) return;
-        
-        var queue = new System.Collections.Queue();
-        var stack = new Stack<int>();
-        queue.Enqueue((IntPtr)root);
-        
-        while (queue.Count > 0)
-        {
-            Vertex* current = (Vertex*)((IntPtr)queue.Dequeue());
-            stack.Push(current->Data);
-            
-            if (current->Right != null)
-                queue.Enqueue((IntPtr)current->Right);
-            if (current->Left != null)
-                queue.Enqueue((IntPtr)current->Left);
-        }
-        
-        Console.WriteLine("Bottom-up (reverse levels) traversal:");
-        while (stack.Count > 0)
-        {
-            Console.Write(stack.Pop() + " ");
-        }
-        Console.WriteLine();
-    }
-
-    // Проход СНИЗУ ВВЕРХ (рекурсивный, обратный in-order)
-    void BottomUpDFS(Vertex* root)
-    {
-        if (root != null)
-        {
-            BottomUpDFS(root->Right);
-            Console.Write(root->Data + " ");
-            BottomUpDFS(root->Left);
-        }
-    }
-
-    // Проход СНИЗУ ВВЕРХ (полностью обратный - post-order)
-    void CompleteBottomUp(Vertex* root)
-    {
-        if (root != null)
-        {
-            CompleteBottomUp(root->Left);
-            CompleteBottomUp(root->Right);
-            Console.Write(root->Data + " ");
-        }
-    }
     
     void FreeTree(Vertex* root)
     {
@@ -144,7 +105,6 @@ unsafe class Program
         return 1 + GetSize(root->Left) + GetSize(root->Right);
     }
 
-    // Контрольная сумма (сумма всех значений)
     int GetCheckSum(Vertex* root)
     {
         if (root == null)
@@ -152,7 +112,6 @@ unsafe class Program
         return root->Data + GetCheckSum(root->Left) + GetCheckSum(root->Right);
     }
 
-    // Высота дерева (максимальная глубина)
     int GetHeight(Vertex* root)
     {
         if (root == null)
@@ -160,7 +119,6 @@ unsafe class Program
         return 1 + Math.Max(GetHeight(root->Left), GetHeight(root->Right));
     }
 
-    // Сумма высот всех узлов (для средней высоты)
     int GetTotalHeight(Vertex* root, int depth = 1)
     {
         if (root == null)
@@ -168,7 +126,6 @@ unsafe class Program
         return depth + GetTotalHeight(root->Left, depth + 1) + GetTotalHeight(root->Right, depth + 1);
     }
 
-    // Средняя высота узлов
     double GetAverageHeight(Vertex* root)
     {
         int size = GetSize(root);
@@ -194,33 +151,30 @@ unsafe class Program
     
     static void Main(string[] args)
     {
+
+
+
         Program program = new Program();
-        program.TreeBuilder(program.Datas);
+        program.CreateStaticTree();
         
-        Console.WriteLine("Top-down (in-order) traversal:");
-        program.TopDown(program.Root);
+        Console.WriteLine("Top-down");
+        program.Td(program.Root);
+        Console.WriteLine("\n");
+
+        
+
+        Console.WriteLine("Bottom-up");
+        program.Dt(program.Root);
         Console.WriteLine("\n");
         
-        // Проход слева направо по уровням
-        program.LeftRightBFS(program.Root);
-        
-        // Проход снизу вверх (обратные уровни)
-        program.BottomUpBFS(program.Root);
-        
-        // Проход снизу вверх (обратный in-order)
-        Console.WriteLine("Bottom-up (reverse in-order):");
-        program.BottomUpDFS(program.Root);
-        Console.WriteLine("\n");
-        
-        // Полностью обратный порядок (снизу вверх)
-        Console.WriteLine("Complete bottom-up (post-order):");
-        program.CompleteBottomUp(program.Root);
+
+
+        Console.WriteLine("Left-right");
+        program.Lr(program.Root);
         Console.WriteLine();
         
-        // Вывод характеристик дерева
         program.PrintTreeInfo(program.Root);
         
-        // Освобождаем память
         program.FreeTree(program.Root);
     }
 }

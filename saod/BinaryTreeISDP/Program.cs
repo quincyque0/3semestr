@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
-using Eto.Forms;
-using Eto.Drawing;
+using System.Collections.Generic;
+using System.Text;
 
 unsafe class Program
 {
@@ -11,15 +12,6 @@ unsafe class Program
         public Vertex* Left;
         public Vertex* Right;
     }
-
-    Vertex* Root;
-
-    [DllImport("libc")]
-    static extern void free(void* ptr);
-
-    [DllImport("libc")]
-    static extern void* malloc(nuint size);
-
     unsafe Vertex* ISDP(int L, int R)
     {
         if (L > R)
@@ -35,14 +27,53 @@ unsafe class Program
         }
     }
 
+
+
+    int[] Datas = { 4, 2, 14, 19, 8, 6 };
+
+
     Vertex* CreateNode(int data)
     {
-        Vertex* node = (Vertex*)malloc((nuint)sizeof(Vertex));
-        node->Data = data;
-        node->Left = null;
-        node->Right = null;
-        return node;
+        Vertex* root = (Vertex*)NativeMemory.Alloc((nuint)sizeof(Vertex));
+        (root)->Data = data;
+        (root)->Left = null;
+        (root)->Right = null;
+        return root;
     }
+
+
+
+
+    void Td(Vertex* root)
+    {
+        if (root != null)
+        {
+            Console.Write(root->Data + " ");
+            Td(root->Left);
+            Td(root->Right);
+        }
+    }
+    void Lr(Vertex* root)
+    {
+        if (root != null)
+        {
+
+            Lr(root->Left);
+            Console.Write(root->Data + " ");
+            Lr(root->Right);
+        }
+    }
+    void Dt(Vertex* root)
+    {
+        if (root != null)
+        {
+
+            Dt(root->Left);
+            Dt(root->Right);
+            Console.Write(root->Data + " ");
+        }
+    }
+
 
     void FreeTree(Vertex* root)
     {
@@ -50,162 +81,111 @@ unsafe class Program
         {
             FreeTree(root->Left);
             FreeTree(root->Right);
-            free(root);
+            NativeMemory.Free(root);
         }
     }
 
-    void Lr(Vertex* root)
+    int GetSize(Vertex* root)
     {
-        if (root != null)
-        {
-            Lr(root->Left);
-            Console.Write(root->Data + " ");
-            Lr(root->Right);
-        }
+        if (root == null)
+            return 0;
+        return 1 + GetSize(root->Left) + GetSize(root->Right);
     }
 
-    // Класс для отрисовки дерева
-    public class TreeDrawer : Drawable
+    int GetCheckSum(Vertex* root)
     {
-        private Vertex* _root;
-        private const int NodeRadius = 25;
-        private const int VerticalSpacing = 80;
-        private const int HorizontalSpacing = 40;
-
-        public TreeDrawer(Vertex* root)
-        {
-            _root = root;
-            BackgroundColor = Colors.White;
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-            var g = e.Graphics;
-            
-            // Очищаем фон
-            g.Clear(Colors.White);
-            
-            if (_root != null)
-            {
-                DrawTree(g, _root, Width / 2, 50, Width / 4);
-            }
-        }
-
-        private void DrawTree(Graphics g, Vertex* node, float x, float y, float horizontalOffset)
-        {
-            if (node == null) return;
-
-            // Рисуем узел
-            DrawNode(g, node->Data.ToString(), x, y);
-
-            // Рисуем связи с детьми
-            if (node->Left != null)
-            {
-                float childX = x - horizontalOffset;
-                float childY = y + VerticalSpacing;
-                DrawLine(g, x, y + NodeRadius, childX, childY - NodeRadius);
-                DrawTree(g, node->Left, childX, childY, horizontalOffset / 2);
-            }
-
-            if (node->Right != null)
-            {
-                float childX = x + horizontalOffset;
-                float childY = y + VerticalSpacing;
-                DrawLine(g, x, y + NodeRadius, childX, childY - NodeRadius);
-                DrawTree(g, node->Right, childX, childY, horizontalOffset / 2);
-            }
-        }
-
-        private void DrawNode(Graphics g, string text, float x, float y)
-        {
-            // Рисуем круг
-            var circleRect = new RectangleF(x - NodeRadius, y - NodeRadius, 
-                                          NodeRadius * 2, NodeRadius * 2);
-            
-            // Красивая градиентная заливка
-            using var brush = new LinearGradientBrush(
-                new PointF(x - NodeRadius, y - NodeRadius),
-                new PointF(x + NodeRadius, y + NodeRadius),
-                Colors.LightSkyBlue,
-                Colors.DodgerBlue
-            );
-            
-            g.FillEllipse(brush, circleRect);
-            g.DrawEllipse(Colors.DarkBlue, circleRect);
-
-            // Рисуем текст
-            using var font = new Font(SystemFonts.Default.Family, 12, FontStyle.Bold);
-            var textSize = g.MeasureString(font, text);
-            g.DrawText(font, Colors.White, 
-                      x - textSize.Width / 2, 
-                      y - textSize.Height / 2, 
-                      text);
-        }
-
-        private void DrawLine(Graphics g, float x1, float y1, float x2, float y2)
-        {
-            using var pen = new Pen(Colors.DarkGray, 2);
-            g.DrawLine(pen, x1, y1, x2, y2);
-        }
+        if (root == null)
+            return 0;
+        return root->Data + GetCheckSum(root->Left) + GetCheckSum(root->Right);
     }
 
-    [STAThread]
+    int GetHeight(Vertex* root)
+    {
+        if (root == null)
+            return 0;
+        return 1 + Math.Max(GetHeight(root->Left), GetHeight(root->Right));
+    }
+
+    int GetTotalHeight(Vertex* root, int depth = 1)
+    {
+        if (root == null)
+            return 0;
+        return depth + GetTotalHeight(root->Left, depth + 1) + GetTotalHeight(root->Right, depth + 1);
+    }
+
+    double GetAverageHeight(Vertex* root)
+    {
+        int size = GetSize(root);
+        if (size == 0)
+            return 0;
+        return (double)GetTotalHeight(root) / size;
+    }
+    void GenerateGraphvizScript(Vertex* root, StringBuilder sb, string parentName = "")
+    {
+        if (root == null)
+            return;
+
+        string currentNodeName = $"node{root->Data}";
+        
+        sb.AppendLine($"    {currentNodeName} [label=\"{root->Data}\"];");
+        
+        if (!string.IsNullOrEmpty(parentName))
+        {
+            sb.AppendLine($"    {parentName} -> {currentNodeName};");
+        }
+
+
+        GenerateGraphvizScript(root->Left, sb, currentNodeName);
+        GenerateGraphvizScript(root->Right, sb, currentNodeName);
+    }
+    
+    string GetGraphvizCode(Vertex* root)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("digraph BinaryTree {");
+        sb.AppendLine("    node [shape=circle, style=filled, fillcolor=lightgreen, fontname=\"Arial\"];");
+        sb.AppendLine("    edge [arrowhead=vee, color=lightbrown];");
+        
+        GenerateGraphvizScript(root, sb);
+        
+        sb.AppendLine("}");
+        return sb.ToString();
+    }
+
+    void SaveGraphvizToFile(string filename, Vertex* root)
+    {
+        string graphvizCode = GetGraphvizCode(root);
+        System.IO.File.WriteAllText(filename, graphvizCode);
+        Console.WriteLine($"Graphviz код сохранен в файл: {filename}");
+    }
+
+    void PrintTreeInfo(Vertex* root)
+    {
+        int size = GetSize(root);
+        int checkSum = GetCheckSum(root);
+        int height = GetHeight(root);
+        double averageHeight = GetAverageHeight(root);
+
+        Console.WriteLine("\n=== Характеристики дерева ===");
+        Console.WriteLine($"Размер: {size}");
+        Console.WriteLine($"Контрольная сумма: {checkSum}");
+        Console.WriteLine($"Высота: {height}");
+        Console.WriteLine($"Средняя высота: {averageHeight:F2}");
+        Console.WriteLine("============================\n");
+    }
+
     unsafe static void Main(string[] args)
     {
+
+
+
         Program program = new Program();
-        
-        try
-        {
-            Console.WriteLine("Создаем сбалансированное дерево...");
-            
-            // Создаем сбалансированное дерево (1-15 для хорошего отображения)
-            program.Root = program.ISDP(1, 15);
+        Vertex* root = program.ISDP(1, 100);
+        program.SaveGraphvizToFile("tree.dot", root);
 
-            Console.WriteLine("Inorder обход дерева:");
-            program.Lr(program.Root);
-            Console.WriteLine("\n");
-
-            // Создаем и запускаем форму
-            var application = new Application();
-            
-            var form = new Form
-            {
-                Title = "Binary Tree Visualization - Inorder: 1 2 3 ... 15",
-                Size = new Size(1200, 800),
-                MinimumSize = new Size(800, 600),
-                Content = new TreeDrawer(program.Root)
-            };
-
-            // Добавляем кнопку для выхода
-            var quitButton = new Button { Text = "Выход" };
-            quitButton.Click += (sender, e) => application.Quit();
-
-            // Создаем layout с деревом и кнопкой
-            var layout = new DynamicLayout();
-            layout.Add(new TreeDrawer(program.Root), yscale: true);
-            layout.Add(quitButton);
-            
-            form.Content = layout;
-
-            Console.WriteLine("Запускаем графическое окно...");
-            Console.WriteLine("Закройте окно или нажмите кнопку 'Выход' для завершения");
-
-            application.Run(form);
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка: {ex.Message}");
-        }
-        finally
-        {
-            // Освобождаем память
-            if (program.Root != null)
-            {
-                Console.WriteLine("Освобождаем память...");
-                program.FreeTree(program.Root);
-            }
-        }
+        Console.WriteLine("Graphviz код сгенерирован. Для визуализации выполните:");
+        Console.WriteLine("dot -Tpng tree.dot -o tree.png");
+        program.Lr(root);
+        program.PrintTreeInfo(root);
     }
 }

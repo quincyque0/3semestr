@@ -7,14 +7,13 @@ unsafe class Program
 {
     int[] generateRandom(int n)
     {
-        int[] massive = new int[n];
-        Random rand = new Random();
-        for (int i = 0; i < n; i++)
-        {
-            massive[i] = rand.Next();
-        }
-        return massive;
+    int[] massive = new int[n];
+    for (int i = 0; i < n; i++)
+    {
+        massive[i] = i + 1;
     }
+    return massive;
+}
     
     struct Vertex
     {
@@ -23,8 +22,62 @@ unsafe class Program
         public Vertex* Right;
     }
 
+
+    Vertex* CreateNode(int data)
+    {
+        Vertex* root = (Vertex*)NativeMemory.Alloc((nuint)sizeof(Vertex));
+        (root)->Data = data;
+        (root)->Left = null;
+        (root)->Right = null;
+        return root;
+    }
     private Vertex* Root = null;
     private Vertex* Root2 = null;
+     private Vertex* Root3 = null;
+
+    unsafe Vertex* ISDP(int L, int R)
+    {
+        if (L > R)
+            return null;
+        else
+        {
+            int m = L + (R - L + 1) / 2;
+            Vertex* p = CreateNode(m);
+            p->Data = m;
+            p->Left = ISDP(L, m - 1);
+            p->Right = ISDP(m + 1, R);
+            return p;
+        }
+    }
+    void Td(Vertex* root)
+    {
+        if (root != null)
+        {
+            Console.Write(root->Data + " ");
+            Td(root->Left);
+            Td(root->Right);
+        }
+    }
+    void Lr(Vertex* root)
+    {
+        if (root != null)
+        {
+
+            Lr(root->Left);
+            Console.Write(root->Data + " ");
+            Lr(root->Right);
+        }
+    }
+    void Dt(Vertex* root)
+    {
+        if (root != null)
+        {
+
+            Dt(root->Left);
+            Dt(root->Right);
+            Console.Write(root->Data + " ");
+        }
+    }
 
     void addRecursive(int D, Vertex** p)
     {
@@ -288,6 +341,27 @@ unsafe class Program
         sb.AppendLine("}");
         return sb.ToString();
     }
+    void PrintTable(Vertex* isdp, Vertex* sdp1, Vertex* sdp2, int n)
+{
+
+    (int size, int sum, int height, double avg) GetInfo(Vertex* root)
+    {
+        return (GetSize(root), GetCheckSum(root), GetHeight(root), GetAverageHeight(root));
+    }
+
+    var isdpInfo = GetInfo(isdp);
+    var sdp1Info = GetInfo(sdp1);
+    var sdp2Info = GetInfo(sdp2);
+    
+    Console.WriteLine($"\nХарактеристики деревьев при n={n}\n");
+    Console.WriteLine($"{"Дерево",-8} {"Размер",8} {"Контр. сумма",14} {"Высота",8} {"Средн.высота",14}");
+    Console.WriteLine(new string('-', 55));
+
+    Console.WriteLine($"{"ИСДП",-8} {isdpInfo.size,8} {isdpInfo.sum,14} {isdpInfo.height,8} {isdpInfo.avg,14:F2}");
+    Console.WriteLine($"{"СДП1",-8} {sdp1Info.size,8} {sdp1Info.sum,14} {sdp1Info.height,8} {sdp1Info.avg,14:F2}");
+    Console.WriteLine($"{"СДП2",-8} {sdp2Info.size,8} {sdp2Info.sum,14} {sdp2Info.height,8} {sdp2Info.avg,14:F2}");
+}
+
     void SaveGraphvizToFile(string filename, Vertex* root)
     {
         string graphvizCode = GetGraphvizCode(root);
@@ -295,27 +369,38 @@ unsafe class Program
         Console.WriteLine($"Graphviz код сохранен в файл: {filename}");
     }
 
-    static void Main()
-    {
-        Program program = new Program();
-        int[] massive = program.generateRandom(100);
+static void Main()
+{
+    Program program = new Program();
+    int n = 100;
+    int[] massive = program.generateRandom(n);
 
-        program.addMas1(massive);
-        program.addMas2(massive);
 
-        Console.WriteLine("Дерево 1 (рекурсивное добавление):");
-        program.Inorder(program.Root);
-        Console.WriteLine();
-        program.PrintTreeInfo(program.Root);
-        program.SaveGraphvizToFile("treeRecursive.dot", program.Root);
+    program.Root = program.ISDP(0, n - 1);
 
-        Console.WriteLine("Дерево 2 (двойная косвенность):");
-        program.Inorder(program.Root2);
-        Console.WriteLine();
-        program.PrintTreeInfo(program.Root2);
-        program.SaveGraphvizToFile("treeKosv.dot", program.Root2);
 
-        program.FreeTree(program.Root);
-        program.FreeTree(program.Root2);
-    }
+    program.addMas1(massive);
+    program.SaveGraphvizToFile("treeKosv.dot", program.Root2);
+    program.SaveGraphvizToFile("treeRecursive.dot", program.Root);
+    Console.WriteLine("Дерево 1 (косвеное добавление):");
+    program.Inorder(program.Root); Console.WriteLine();
+    program.PrintTreeInfo(program.Root);
+
+    program.addMas2(massive);
+    program.SaveGraphvizToFile("treeRecursive.dot", program.Root);
+    Console.WriteLine("Дерево 2 (рекурсивное добавление):");
+    program.Inorder(program.Root); Console.WriteLine();
+    program.PrintTreeInfo(program.Root);
+
+
+
+    program.Root3 = program.ISDP(1,100);
+
+
+    program.PrintTable(program.Root2, program.Root, program.Root2, n);
+
+    program.FreeTree(program.Root);
+    program.FreeTree(program.Root2);
+}
+
 }

@@ -205,7 +205,7 @@ int compare_records(const record2 *a, const record2 *b) {
     get_first_three_letters(b->d, key_b);
     
 
-    int key_compare = strcmp(key_a, key_b);
+    int key_compare = strcmp(a->d, b->d);
     if (key_compare != 0) {
         return key_compare;
     }
@@ -272,6 +272,113 @@ void binaryFoundb(record2 *arr, int size, int target, Queue* queue) {
     }
 }
 
+int Lessa(const void *x, const void *y) {
+    const record2 *a = (const record2*)x;
+    const record2 *b = (const record2*)y;
+    return strcmp(a->a, b->a);
+}
+int Lessc(const void *x, const void *y) {
+    const record2 *a = (const record2*)x;
+    const record2 *b = (const record2*)y;
+    return strcmp(a->c, b->c);
+}
+int Lessd(const void *x, const void *y) {
+    const record2 *a = (const record2*)x;
+    const record2 *b = (const record2*)y;
+    return strcmp(a->d, b->d);
+}
+
+void binaryFounda(record2 *arr, int size, const char *target_utf8, Queue* queue) {
+    char target_cp866[30];
+    if (convert_encoding("UTF-8", "CP866",
+                         (char*)target_utf8, strlen(target_utf8),
+                         target_cp866, sizeof(target_cp866)) != 0) {
+        printf("Encoding conversion failed!\n");
+        return;
+    }
+
+    int left = 0;
+    int right = size - 1;
+    int target_len = strlen(target_cp866);
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        int cmp = strncmp(arr[mid].a, target_cp866, target_len);
+
+        if (cmp >= 0) {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+
+    int index = left;
+    while (index < size && strncmp(arr[index].a, target_cp866, target_len) == 0) {
+        createNode(queue, arr[index]);
+        index++;
+    }
+}
+void binaryFoundc(record2 *arr, int size, const char *target_utf8, Queue* queue) {
+    char target_cp866[30];
+    if (convert_encoding("UTF-8", "CP866",
+                         (char*)target_utf8, strlen(target_utf8),
+                         target_cp866, sizeof(target_cp866)) != 0) {
+        printf("Encoding conversion failed!\n");
+        return;
+    }
+
+    int left = 0;
+    int right = size - 1;
+    int target_len = strlen(target_cp866);
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        int cmp = strncmp(arr[mid].c, target_cp866, target_len);
+
+        if (cmp >= 0) {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+
+    int index = left;
+    while (index < size && strncmp(arr[index].c, target_cp866, target_len) == 0) {
+        createNode(queue, arr[index]);
+        index++;
+    }
+}
+void binaryFoundd(record2 *arr, int size, const char *target_utf8, Queue* queue) {
+    char target_cp866[30];
+    if (convert_encoding("UTF-8", "CP866",
+                         (char*)target_utf8, strlen(target_utf8),
+                         target_cp866, sizeof(target_cp866)) != 0) {
+        printf("Encoding conversion failed!\n");
+        return;
+    }
+
+    int left = 0;
+    int right = size - 1;
+    int target_len = strlen(target_cp866);
+
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        int cmp = strncmp(arr[mid].d, target_cp866, target_len);
+
+        if (cmp >= 0) {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+
+    int index = left;
+    while (index < size && strncmp(arr[index].d, target_cp866, target_len) == 0) {
+        createNode(queue, arr[index]);
+        index++;
+    }
+}
+
 void quickSort(record2 *records, int L, int R) {
     if (L >= R) return;
     
@@ -295,16 +402,132 @@ void quickSort(record2 *records, int L, int R) {
     if (L < j) quickSort(records, L, j);
     if (i < R) quickSort(records, i, R);
 }
-void fastSearch(record2 *records, int record_count){
-    int key,cur = 0;
+int fastSearch(record2 *records, int record_count) {
+    int key = 1;
+    int summa = 0;
+    char input[100];
+    // char *a = (char*)malloc(sizeof(char)*100) ;
+    char a[4] = "Ар";
+    
     Queue* queue = (Queue*)malloc(sizeof(Queue));
-    initQueue(queue);
-    scanf("enter search-key:%d",&key);
-    switch(key){
-        case 1:
-           binaryFoundb(records,record_count,key,queue);
-           printQueue(queue);
+    if (queue == NULL) {
+        printf("Memory allocation error!\n");
+        return -1;
     }
+    initQueue(queue);
+    
+    printf("Enter search-key (1 for standard search): ");
+    if (scanf("%d", &key) != 1) {
+        printf("Invalid input!\n");
+        free(queue);
+        return -1;
+    }
+    
+    switch(key) {
+    case 1: {
+        printf("Enter sum: ");
+        if (scanf("%d", &summa) != 1) {
+            printf("Invalid sum input!\n");
+            free(queue);
+            return -1;
+        }
+        binaryFoundb(records, record_count, summa, queue);
+        printAndClearQueue(queue);
+        break;
+    }
+
+    case 2: {
+        printf("Enter fio (field a) for search!\n");
+        while (getchar() != '\n'); 
+
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            printf("Input error!\n");
+            free(queue);
+            return -1;
+        }
+
+        input[strcspn(input, "\n")] = '\0';
+
+        if (strlen(input) == 0) {
+            printf("Empty input!\n");
+            break;
+        }
+
+        qsort(records, record_count, sizeof(record2), Lessa);
+        binaryFounda(records, record_count, input, queue);
+
+        if (queue->head == NULL) {
+            printf("No matches found!\n");
+        } else {
+            printAndClearQueue(queue);
+        }
+        break;
+    }
+
+    case 3: {
+        printf("Enter field c for search!\n");
+        while (getchar() != '\n'); 
+
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            printf("Input error!\n");
+            free(queue);
+            return -1;
+        }
+
+        input[strcspn(input, "\n")] = '\0';
+
+        if (strlen(input) == 0) {
+            printf("Empty input!\n");
+            break;
+        }
+
+        qsort(records, record_count, sizeof(record2), Lessc);
+        binaryFoundc(records, record_count, input, queue);
+
+        if (queue->head == NULL) {
+            printf("No matches found!\n");
+        } else {
+            printAndClearQueue(queue);
+        }
+        break;
+    }
+
+    case 4: {
+        printf("Enter field d for search!\n");
+        while (getchar() != '\n'); 
+
+        if (fgets(input, sizeof(input), stdin) == NULL) {
+            printf("Input error!\n");
+            free(queue);
+            return -1;
+        }
+
+        input[strcspn(input, "\n")] = '\0';
+
+        if (strlen(input) == 0) {
+            printf("Empty input!\n");
+            break;
+        }
+
+        qsort(records, record_count, sizeof(record2), Lessd);
+        binaryFoundd(records, record_count, input, queue);
+
+        if (queue->head == NULL) {
+            printf("No matches found!\n");
+        } else {
+            printAndClearQueue(queue);
+        }
+        break;
+    }
+
+    default:
+        printf("Unknown search key: %d\n", key);
+        break;
+}
+
+    
+    free(queue);
+    return 0;
 }
 
 
@@ -334,17 +557,18 @@ int main() {
 
     printf("Records read: %zu\n", readed);
 
+    printf("not sorted : \n");
+    checkRecords(filesize, record_count, records);
 
-    // checkRecords(filesize, record_count, records);
-    
     if (record_count > 0) {
         quickSort(records, 0, record_count - 1);
         printf("Sorting completed.\n");
     }
-   
-
-    // checkRecords(filesize, record_count, records);
-    fastSearch(records,record_count);
+    printf("sorted : \n");
+    checkRecords(filesize, record_count, records);
+    
+    
+    fastSearch(records, record_count);
 
     free(records);
     return 0;

@@ -11,8 +11,6 @@ unsafe class Program
         public Vertex* Left;
         public Vertex* Right;
     }
-
-    // Построение идеально сбалансированного дерева (ISDP)
     unsafe Vertex* ISDP(int L, int R)
     {
         if (L > R)
@@ -35,7 +33,7 @@ unsafe class Program
         return root;
     }
 
-    // Обходы дерева
+
     void Td(Vertex* root)
     {
         if (root != null)
@@ -76,7 +74,7 @@ unsafe class Program
         }
     }
 
-    // Метрики дерева
+
     int GetSize(Vertex* root)
     {
         if (root == null) return 0;
@@ -108,7 +106,7 @@ unsafe class Program
         return (double)GetTotalHeight(root) / size;
     }
 
-    // Генерация Graphviz
+
     void GenerateGraphvizScript(Vertex* root, StringBuilder sb, string parentName = "")
     {
         if (root == null) return;
@@ -145,12 +143,12 @@ unsafe class Program
         Console.WriteLine($"Graphviz код сохранен в файл: {filename}");
     }
 
-    // Переименование узлов в BFS порядке (1..N)
+
    void RelabelTreeBFS(Vertex* root, int[] newValues)
 {
     if (root == null) return;
 
-    // Максимум newValues.Length узлов
+
     Vertex*[] queue = new Vertex*[newValues.Length];
     int head = 0, tail = 0;
 
@@ -186,13 +184,13 @@ unsafe class Program
     unsafe static void Main(string[] args)
     {
         Program program = new Program();
-        Vertex* root = program.ISDP(1, 100); // идеально сбалансированное дерево
+        Vertex* root = program.ISDP(1, 100); 
 
         int[] labels = new int[100];
         for (int i = 0; i < 100; i++)
             labels[i] = i + 1;
 
-        // Переименовываем вершины по BFS
+
         program.RelabelTreeBFS(root, labels);
 
         program.SaveGraphvizToFile("tree.dot", root);
@@ -201,11 +199,11 @@ unsafe class Program
         Console.WriteLine("dot -Tpng tree.dot -o tree.png");
 
         program.Lr(root);
-        Console.WriteLine()
-        Console.WriteLine()
+        Console.WriteLine();
+        Console.WriteLine();
         program.Td(root);
-        Console.WriteLine()
-        Console.WriteLine()
+        Console.WriteLine();
+        Console.WriteLine();
         program.Dt(root);
         program.PrintTreeInfo(root);
 

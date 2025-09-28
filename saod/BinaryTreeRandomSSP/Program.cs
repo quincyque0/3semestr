@@ -3,14 +3,16 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Text;
+
 unsafe class Program
 {
+    Random random = new Random();
     int[] generateRandom(int n)
     {
     int[] massive = new int[n];
     for (int i = 0; i < n; i++)
     {
-        massive[i] = i + 1;
+        massive[i] = random.Next();;
     }
     return massive;
 }
@@ -144,79 +146,58 @@ unsafe class Program
         else Console.WriteLine($"вершины нету");
     }
 
-    void Delete(int D)
+void Delete(int D, Vertex** rootPtr)
+{
+    if (rootPtr == null || *rootPtr == null)
+        return;
+
+    Vertex** p = rootPtr;
+    
+    // Поиск узла для удаления
+    while (*p != null)
     {
-        Vertex* p = Root;
-        Vertex* parent = null;
-        bool isLeftChild = false;
-
-        while (p != null && p->Data != D)
-        {
-            parent = p;
-            if (D < p->Data)
-            {
-                p = p->Left;
-                isLeftChild = true;
-            }
-            else
-            {
-                p = p->Right;
-                isLeftChild = false;
-            }
-        }
-
-        if (p == null) return;
-
-        if (p->Left == null && p->Right == null)
-        {
-            if (parent == null) Root = null;
-            else if (isLeftChild) parent->Left = null;
-            else parent->Right = null;
-            NativeMemory.Free(p);
-        }
-        else if (p->Right == null)
-        {
-            if (parent == null) Root = p->Left;
-            else if (isLeftChild) parent->Left = p->Left;
-            else parent->Right = p->Left;
-            NativeMemory.Free(p);
-        }
-        else if (p->Left == null)
-        {
-            if (parent == null) Root = p->Right;
-            else if (isLeftChild) parent->Left = p->Right;
-            else parent->Right = p->Right;
-            NativeMemory.Free(p);
-        }
+        if (D < (*p)->Data)
+            p = &(*p)->Left;
+        else if (D > (*p)->Data)
+            p = &(*p)->Right;
         else
-        {
-            Vertex* r = p->Left;
-            Vertex* S = p;
-            if (r->Right == null)
-            {
-                r->Right = p->Right;
-                if (parent == null) Root = r;
-                else if (isLeftChild) parent->Left = r;
-                else parent->Right = r;
-                NativeMemory.Free(p);
-            }
-            else
-            {
-                while (r->Right != null)
-                {
-                    S = r;
-                    r = r->Right;
-                }
-                S->Right = r->Left;
-                r->Left = p->Left;
-                r->Right = p->Right;
-                if (parent == null) Root = r;
-                else if (isLeftChild) parent->Left = r;
-                else parent->Right = r;
-                NativeMemory.Free(p);
-            }
-        }
+            break;
     }
+
+    if (*p == null) return; // Узел не найден
+
+    Vertex* nodeToDelete = *p;
+
+    // Случай 1: Узел без детей или с одним ребенком
+    if (nodeToDelete->Left == null)
+    {
+        *p = nodeToDelete->Right;
+    }
+    else if (nodeToDelete->Right == null)
+    {
+        *p = nodeToDelete->Left;
+    }
+    // Случай 2: Узел с двумя детьми
+    else
+    {
+        // Находим наименьший узел в правом поддереве
+        Vertex** minNodePtr = &nodeToDelete->Right;
+        while ((*minNodePtr)->Left != null)
+        {
+            minNodePtr = &(*minNodePtr)->Left;
+        }
+
+        // Заменяем данные
+        nodeToDelete->Data = (*minNodePtr)->Data;
+
+        // Удаляем найденный узел (у него нет левого ребенка)
+        Vertex* temp = *minNodePtr;
+        *minNodePtr = temp->Right;
+        nodeToDelete = temp;
+    }
+
+    NativeMemory.Free(nodeToDelete);
+}
 
     void FreeTree(Vertex* root)
     {
@@ -328,6 +309,26 @@ unsafe class Program
         GenerateGraphvizScript(root->Left, sb, currentNodeName);
         GenerateGraphvizScript(root->Right, sb, currentNodeName);
     }
+       void RelabelTreeBFS(Vertex* root, int[] newValues)
+{
+    if (root == null) return;
+
+
+    Vertex*[] queue = new Vertex*[newValues.Length];
+    int head = 0, tail = 0;
+
+    queue[tail++] = root;
+    int i = 0;
+
+    while (head < tail && i < newValues.Length)
+    {
+        Vertex* node = queue[head++];
+        node->Data = newValues[i++];
+        
+        if (node->Left != null) queue[tail++] = node->Left;
+        if (node->Right != null) queue[tail++] = node->Right;
+    }
+}
 
     string GetGraphvizCode(Vertex* root)
     {
@@ -368,39 +369,49 @@ unsafe class Program
         System.IO.File.WriteAllText(filename, graphvizCode);
         Console.WriteLine($"Graphviz код сохранен в файл: {filename}");
     }
+    void deletes(Vertex* root, int n)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            Console.Write("Введите значение для удаления: ");
+            string input = Console.ReadLine();
+            int.TryParse(input, out int deleted);
+            Delete(deleted, &root);
+            SaveGraphvizToFile("treeRecursive.dot", root);
+        }
+    }
 
 static void Main()
-{
-    Program program = new Program();
-    int n = 100;
-    int[] massive = program.generateRandom(n);
+    {
+        Program program = new Program();
+        int n = 100;
+        int[] massive = program.generateRandom(n);
+
+        int[] labels = new int[100];
+        for (int i = 0; i < 100; i++)
+            labels[i] = i + 1;
+        // program.Root = program.ISDP(0, n - 1);
 
 
-    program.Root = program.ISDP(0, n - 1);
+        // program.addMas1(massive);
+        
 
-
-    program.addMas1(massive);
-    program.SaveGraphvizToFile("treeKosv.dot", program.Root2);
-    program.SaveGraphvizToFile("treeRecursive.dot", program.Root);
-    Console.WriteLine("Дерево 1 (косвеное добавление):");
-    program.Inorder(program.Root); Console.WriteLine();
-    program.PrintTreeInfo(program.Root);
-
-    program.addMas2(massive);
-    program.SaveGraphvizToFile("treeRecursive.dot", program.Root);
-    Console.WriteLine("Дерево 2 (рекурсивное добавление):");
-    program.Inorder(program.Root); Console.WriteLine();
-    program.PrintTreeInfo(program.Root);
+        program.addMas2(massive);
+        // program.RelabelTreeBFS(program.Root2,labels);
+        program.SaveGraphvizToFile("treeRecursive.dot", program.Root2);
+        program.deletes(program.Root2,n);
+        
+        
 
 
 
-    program.Root3 = program.ISDP(1,100);
+        // program.Root3 = program.ISDP(1, 100);
 
 
-    program.PrintTable(program.Root2, program.Root, program.Root2, n);
+        // program.PrintTable(program.Root2, program.Root, program.Root2, n);
 
-    program.FreeTree(program.Root);
-    program.FreeTree(program.Root2);
-}
+        program.FreeTree(program.Root);
+        program.FreeTree(program.Root2);
+    }
 
 }

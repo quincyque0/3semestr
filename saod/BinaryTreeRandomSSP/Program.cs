@@ -12,7 +12,7 @@ unsafe class Program
     int[] massive = new int[n];
     for (int i = 0; i < n; i++)
     {
-        massive[i] = random.Next();;
+        massive[i] = random.Next();
     }
     return massive;
 }
@@ -380,28 +380,43 @@ void Delete(int D, Vertex** rootPtr)
             SaveGraphvizToFile("treeRecursive.dot", root);
         }
     }
+    int[] CreateShuffledArray()
+{
+    int[] array = new int[100];
+    
+    for (int i = 0; i < 100; i++)
+    {
+        array[i] = i + 1;
+    }
+    
+    Random random = new Random();
+    for (int i = array.Length - 1; i > 0; i--)
+    {
+        int j = random.Next(i + 1);
+        int temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+    
+    return array;
+}
 
 static void Main()
     {
         Program program = new Program();
         int n = 100;
-        int[] massive = program.generateRandom(n);
-
-        int[] labels = new int[100];
-        for (int i = 0; i < 100; i++)
-            labels[i] = i + 1;
-        // program.Root = program.ISDP(0, n - 1);
+        int[] massive = program.CreateShuffledArray();
 
 
         // program.addMas1(massive);
-        
+
 
         program.addMas2(massive);
-        // program.RelabelTreeBFS(program.Root2,labels);
+
         program.SaveGraphvizToFile("treeRecursive.dot", program.Root2);
-        program.deletes(program.Root2,n);
-        
-        
+        program.deletes(program.Root2, 10);
+
+
 
 
 

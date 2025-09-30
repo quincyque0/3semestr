@@ -3,17 +3,28 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Text;
+using Utils;
 unsafe class Program
 {
     int[] generateRandom(int n)
-    {
+{
     int[] massive = new int[n];
     for (int i = 0; i < n; i++)
     {
         massive[i] = i + 1;
     }
+
+    Random rand = new Random();
+    // Перемешиваем массив (Fisher–Yates shuffle)
+    for (int i = n - 1; i > 0; i--)
+    {
+        int j = rand.Next(i + 1); // случайный индекс от 0 до i
+        (massive[i], massive[j]) = (massive[j], massive[i]); // swap
+    }
+
     return massive;
 }
+
     
     struct Vertex
     {
@@ -341,9 +352,8 @@ unsafe class Program
         sb.AppendLine("}");
         return sb.ToString();
     }
-    void PrintTable(Vertex* isdp, Vertex* sdp1, Vertex* sdp2, int n)
+void PrintTable(Vertex* isdp, Vertex* sdp1, Vertex* sdp2, int n)
 {
-
     (int size, int sum, int height, double avg) GetInfo(Vertex* root)
     {
         return (GetSize(root), GetCheckSum(root), GetHeight(root), GetAverageHeight(root));
@@ -352,7 +362,7 @@ unsafe class Program
     var isdpInfo = GetInfo(isdp);
     var sdp1Info = GetInfo(sdp1);
     var sdp2Info = GetInfo(sdp2);
-    
+
     Console.WriteLine($"\nХарактеристики деревьев при n={n}\n");
     Console.WriteLine($"{"Дерево",-8} {"Размер",8} {"Контр. сумма",14} {"Высота",8} {"Средн.высота",14}");
     Console.WriteLine(new string('-', 55));
@@ -360,6 +370,38 @@ unsafe class Program
     Console.WriteLine($"{"ИСДП",-8} {isdpInfo.size,8} {isdpInfo.sum,14} {isdpInfo.height,8} {isdpInfo.avg,14:F2}");
     Console.WriteLine($"{"СДП1",-8} {sdp1Info.size,8} {sdp1Info.sum,14} {sdp1Info.height,8} {sdp1Info.avg,14:F2}");
     Console.WriteLine($"{"СДП2",-8} {sdp2Info.size,8} {sdp2Info.sum,14} {sdp2Info.height,8} {sdp2Info.avg,14:F2}");
+
+    // Формируем данные для изображения таблицы
+    List<List<object>> tableData = new List<List<object>>
+    {
+        new List<object> { "Дерево", "Размер", "Контр. сумма", "Высота", "Средн.высота" },
+        new List<object> { "ИСДП", isdpInfo.size, isdpInfo.sum, isdpInfo.height, isdpInfo.avg },
+        new List<object> { "СДП1", sdp1Info.size, sdp1Info.sum, sdp1Info.height, sdp1Info.avg },
+        new List<object> { "СДП2", sdp2Info.size, sdp2Info.sum, sdp2Info.height, sdp2Info.avg },
+    };
+
+    // Сохраняем таблицу в изображение
+    Utils.TableImage.CreateTableImage(tableData, "TreeTable.png");
+    Console.WriteLine("Таблица сохранена в TreeTable.png");
+
+
+}
+void RelabelTreeBFS(Vertex* root, int[] newValues)
+{
+    if (root == null) return;
+
+    Queue<IntPtr> queue = new Queue<IntPtr>();
+    queue.Enqueue((IntPtr)root);
+
+    int i = 0;
+    while (queue.Count > 0 && i < newValues.Length)
+    {
+        Vertex* current = (Vertex*)queue.Dequeue();
+        current->Data = newValues[i++]; 
+
+        if (current->Left != null) queue.Enqueue((IntPtr)current->Left);
+        if (current->Right != null) queue.Enqueue((IntPtr)current->Right);
+    }
 }
 
     void SaveGraphvizToFile(string filename, Vertex* root)
@@ -376,18 +418,22 @@ static void Main()
     int[] massive = program.generateRandom(n);
 
 
-    program.Root = program.ISDP(0, n - 1);
+ 
+    int[] labels = new int[100];
+        for (int i = 0; i < 100; i++)
+            labels[i] = i + 1;
 
 
     program.addMas1(massive);
-    program.SaveGraphvizToFile("treeKosv.dot", program.Root2);
-    program.SaveGraphvizToFile("treeRecursive.dot", program.Root);
+    program.RelabelTreeBFS(program.Root,labels);
+    program.SaveGraphvizToFile("treeKosv.dot", program.Root);
     Console.WriteLine("Дерево 1 (косвеное добавление):");
     program.Inorder(program.Root); Console.WriteLine();
     program.PrintTreeInfo(program.Root);
 
     program.addMas2(massive);
-    program.SaveGraphvizToFile("treeRecursive.dot", program.Root);
+    program.RelabelTreeBFS(program.Root2,labels);
+    program.SaveGraphvizToFile("treeRecursive.dot", program.Root2);
     Console.WriteLine("Дерево 2 (рекурсивное добавление):");
     program.Inorder(program.Root); Console.WriteLine();
     program.PrintTreeInfo(program.Root);
@@ -397,9 +443,12 @@ static void Main()
     program.Root3 = program.ISDP(1,100);
 
 
-    program.PrintTable(program.Root2, program.Root, program.Root2, n);
+    program.PrintTable( program.Root3,program.Root,program.Root2, n);
 
-    program.FreeTree(program.Root);
+
+
+
+        program.FreeTree(program.Root);
     program.FreeTree(program.Root2);
 }
 

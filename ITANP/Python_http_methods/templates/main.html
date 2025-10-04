@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Форма обратной связи</title>
+    <meta charset="utf-8">
+</head>
+<body>
+
+    <h1>Навигация</h1>
+    <nav>
+    <a href="/">Главная</a> |
+    <a href="/about">О нас</a> |
+    <a href="/contact">Контакты</a>
+    </nav>
+    <h1>Обратная связь</h1>
+    <form action="/submit" method="post">
+        <p>
+            <label>Имя:</label><br>
+            <input type="text" name="name" required>
+        </p>
+        <p>
+            <label>Email:</label><br>
+            <input type="email" name="email" required>
+        </p>
+        <p>
+            <label>Сообщение:</label><br>
+            <textarea name="message" rows="5" cols="50"></textarea>
+        </p>
+        <p>
+            <button type="submit">Отправить</button>
+        </p>
+        </form>
+
+</body>
+</html>

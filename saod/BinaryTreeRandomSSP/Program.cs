@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Text;
+using static RandomBinaryTreeDictFuncs;
 
 unsafe class Program
 {
@@ -362,7 +363,7 @@ void PrintTable(Vertex* isdp, Vertex* sdp1, Vertex* sdp2, int n)
     Console.WriteLine($"{"СДП1",-8} {sdp1Info.size,8} {sdp1Info.sum,14} {sdp1Info.height,8} {sdp1Info.avg,14:F2}");
     Console.WriteLine($"{"СДП2",-8} {sdp2Info.size,8} {sdp2Info.sum,14} {sdp2Info.height,8} {sdp2Info.avg,14:F2}");
 
-    // Формируем данные для изображения таблицы
+ 
     List<List<object>> tableData = new List<List<object>>
     {
         new List<object> { "Дерево", "Размер", "Контр. сумма", "Высота", "Средн.высота" },
@@ -372,28 +373,12 @@ void PrintTable(Vertex* isdp, Vertex* sdp1, Vertex* sdp2, int n)
     };
 
     // Сохраняем таблицу в изображение
-    Utils.TableImage.CreateTableImage(tableData, "TreeTable.png");
-    Console.WriteLine("Таблица сохранена в TreeTable.png");
+    // Utils.TableImage.CreateTableImage(tableData, "TreeTable.png");
+    // Console.WriteLine("Таблица сохранена в TreeTable.png");
 
 
 }
-void RelabelTreeBFS(Vertex* root, int[] newValues)
-{
-    if (root == null) return;
 
-    Queue<IntPtr> queue = new Queue<IntPtr>();
-    queue.Enqueue((IntPtr)root);
-
-    int i = 0;
-    while (queue.Count > 0 && i < newValues.Length)
-    {
-        Vertex* current = (Vertex*)queue.Dequeue();
-        current->Data = newValues[i++]; 
-
-        if (current->Left != null) queue.Enqueue((IntPtr)current->Left);
-        if (current->Right != null) queue.Enqueue((IntPtr)current->Right);
-    }
-}
 
     void SaveGraphvizToFile(string filename, Vertex* root)
     {
@@ -414,9 +399,9 @@ void RelabelTreeBFS(Vertex* root, int[] newValues)
     }
     int[] CreateShuffledArray()
 {
-    int[] array = new int[100];
+    int[] array = new int[30];
     
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 30; i++)
     {
         array[i] = i + 1;
     }
@@ -436,7 +421,7 @@ void RelabelTreeBFS(Vertex* root, int[] newValues)
 static void Main()
     {
         Program program = new Program();
-        int n = 100;
+        int n = 30;
         int[] massive = program.CreateShuffledArray();
 
 
@@ -444,10 +429,12 @@ static void Main()
 
 
         program.addMas2(massive);
-
+        DisplayKeywordDictionary("/Users/a1/Desktop/GitHub/3semestr/saod/BinaryTreeRandomSSP/Program.cs");
         program.SaveGraphvizToFile("treeRecursive.dot", program.Root2);
+        program.Lr(program.Root2);
         program.deletes(program.Root2, 10);
-
+        program.Lr(program.Root2);
+        
 
 
 

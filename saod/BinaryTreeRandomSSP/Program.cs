@@ -155,7 +155,7 @@ void Delete(int D, Vertex** rootPtr)
 
     Vertex** p = rootPtr;
     
-    // Поиск узла для удаления
+
     while (*p != null)
     {
         if (D < (*p)->Data)
@@ -166,11 +166,9 @@ void Delete(int D, Vertex** rootPtr)
             break;
     }
 
-    if (*p == null) return; // Узел не найден
-
+    if (*p == null) return; 
     Vertex* nodeToDelete = *p;
 
-    // Случай 1: Узел без детей или с одним ребенком
     if (nodeToDelete->Left == null)
     {
         *p = nodeToDelete->Right;
@@ -179,20 +177,18 @@ void Delete(int D, Vertex** rootPtr)
     {
         *p = nodeToDelete->Left;
     }
-    // Случай 2: Узел с двумя детьми
+
     else
     {
-        // Находим наименьший узел в правом поддереве
+
         Vertex** minNodePtr = &nodeToDelete->Right;
         while ((*minNodePtr)->Left != null)
         {
             minNodePtr = &(*minNodePtr)->Left;
         }
 
-        // Заменяем данные
         nodeToDelete->Data = (*minNodePtr)->Data;
 
-        // Удаляем найденный узел (у него нет левого ребенка)
         Vertex* temp = *minNodePtr;
         *minNodePtr = temp->Right;
         nodeToDelete = temp;
@@ -372,7 +368,6 @@ void PrintTable(Vertex* isdp, Vertex* sdp1, Vertex* sdp2, int n)
         new List<object> { "СДП2", sdp2Info.size, sdp2Info.sum, sdp2Info.height, sdp2Info.avg },
     };
 
-    // Сохраняем таблицу в изображение
     // Utils.TableImage.CreateTableImage(tableData, "TreeTable.png");
     // Console.WriteLine("Таблица сохранена в TreeTable.png");
 

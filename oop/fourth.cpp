@@ -57,26 +57,35 @@ public:
 };
 
 
-vector<string> names = {"oleg", "adolf", "serega", "alehander", "vladimir", "maria", "ivan", "anna", "dmitry", "ekaterina"};
-vector<string> professions = {"svarshik", "ingeneer", "smm", "infotsigan", "miner", "programmer", "teacher", "doctor", "driver", "manager"};
-vector<string> studies = {"killer", "unemployed", "aferist", "tsigan", "president", "student", "graduate", "phd", "bachelor", "master"};
-
-
-random_device rd;
-mt19937 gen(rd());
-uniform_int_distribution<> name_dist(0, names.size() - 1);
-uniform_int_distribution<> age_dist(0, 110);
-uniform_int_distribution<> prof_dist(0, professions.size() - 1);
-uniform_int_distribution<> study_dist(0, studies.size() - 1);
 
 void printVector(const vector<Sotrudnic>& vect){
     int i = 1;
-    for(const auto& sotrudnik : vect){
+    for(auto sotrudnik: vect){
         cout << i++ << ") " << sotrudnik.get_Dets() << endl;
     }
 }
+bool compare(const Sotrudnic& left,const Sotrudnic& right){
+    return left.get_Dets() < right.get_Dets(); 
+    
+}
+bool adult(const Sotrudnic& s) {
+    return s.get_Age() > 18;
+}
 
 int main(){
+    vector<string> names = {"oleg", "adolf", "serega", "alehander", "vladimir", "maria", "ivan", "anna", "dmitry", "ekaterina"};
+    vector<string> professions = {"svarshik", "ingeneer", "smm", "infotsigan", "miner", "programmer", "teacher", "doctor", "driver", "manager"};
+    vector<string> studies = {"killer", "unemployed", "aferist", "tsigan", "president", "student", "graduate", "phd", "bachelor", "master"};
+
+
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> name_dist(0, names.size() - 1);
+    uniform_int_distribution<> age_dist(0, 110);
+    uniform_int_distribution<> prof_dist(0, professions.size() - 1);
+    uniform_int_distribution<> study_dist(0, studies.size() - 1);
+
+
     int n = 0;
     cout << "enter count of class" << endl;
     cin >> n;
@@ -98,17 +107,16 @@ int main(){
     cout << endl;
 
     vector<Sotrudnic> Sotrudnics_second;
-    copy_if(Sotrudnics.begin(), Sotrudnics.end(), back_inserter(Sotrudnics_second),
-        [](const Sotrudnic& s) {
-            return s.get_Age() > 18;
-        });
+
+    
+    copy_if(Sotrudnics.begin(),Sotrudnics.end(),back_inserter(Sotrudnics_second),adult);
 
     cout << "После фильтрации (возраст > 18):" << endl;
     printVector(Sotrudnics_second);
     cout << endl;
 
 
-    sort(Sotrudnics_second.begin(), Sotrudnics_second.end(), [](const Sotrudnic& a, const Sotrudnic& b) {return a.get_Dets() < b.get_Dets();});
+    sort(Sotrudnics_second.begin(), Sotrudnics_second.end(),compare);
 
     cout << "После сортировки по возрасту:" << endl;
     printVector(Sotrudnics_second);

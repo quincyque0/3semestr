@@ -1,35 +1,45 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Collections.Generic;
-using System.Runtime.Versioning;
 
-#pragma warning disable
-
-public unsafe class AVLTree
+public unsafe struct AVLVertex
 {
-    public struct AVLVertex
+    public int data;
+    public int bal;
+    public AVLVertex* left;
+    public AVLVertex* right;
+}
+
+public static unsafe class AVLTree
+{
+    private static bool _rost;
+    private static bool _delete;
+    public static AVLVertex* root;
+
+    public static int InsertCount { get; private set; }
+    public static int DeleteCount { get; private set; }
+    public static int RotationCount { get; private set; }
+
+    static AVLTree()
     {
-        public int data;
-        public int bal;
-        public AVLVertex* left;
-        public AVLVertex* right;
+        InsertCount = 0;
+        DeleteCount = 0;
+        RotationCount = 0;
+        root = null;
     }
 
-    private bool _rost;
-    public AVLVertex* root;
-
-    public void Add(int data)
+    public static void Add(int data)
     {
         _rost = false;
         AVLVertex* rootPtr = root;
         AddAVL(data, &rootPtr);
         root = rootPtr;
+        InsertCount++;
     }
 
-    private void AddAVL(int d, AVLVertex** p)
+    private static void AddAVL(int d, AVLVertex** p)
     {
         if (*p == null)
         {
@@ -59,14 +69,16 @@ public unsafe class AVLTree
                 }
                 else
                 {
-                    if ((*p)->left->bal < 0)
+                    if ((*p)->left != null && (*p)->left->bal < 0)
                     {
-                        *p = LL_Rotation(*p);
+                        *p = LL1(*p);
+                        RotationCount++;
                         _rost = false;
                     }
-                    else
+                    else if ((*p)->left != null)
                     {
-                        *p = LR_Rotation(*p);
+                        *p = LR1(*p);
+                        RotationCount++;
                         _rost = false;
                     }
                 }
@@ -91,46 +103,271 @@ public unsafe class AVLTree
                 }
                 else
                 {
-                    if ((*p)->right->bal > 0)
+                    if ((*p)->right != null && (*p)->right->bal > 0)
                     {
-                        *p = RR_Rotation(*p);
+                        *p = RR1(*p);
+                        RotationCount++;
                         _rost = false;
                     }
-                    else
+                    else if ((*p)->right != null)
                     {
-                        *p = RL_Rotation(*p);
+                        *p = RL1(*p);
+                        RotationCount++;
                         _rost = false;
                     }
                 }
             }
         }
+    }
+
+    public static void Delete(int data)
+    {
+        _delete = false;
+        AVLVertex* rootPtr = root;
+        DeleteAVL(data, &rootPtr);
+        root = rootPtr;
+        if (_delete) DeleteCount++;
+        DisplayTree($"After deleting {data}");
+    }
+
+    private static void DeleteAVL(int d, AVLVertex** p)
+    {
+        if (*p == null)
+            return;
+
+        if (d < (*p)->data)
+        {
+            AVLVertex* leftPtr = (*p)->left;
+            DeleteAVL(d, &leftPtr);
+            (*p)->left = leftPtr;
+            if (_delete) BR(p);
+        }
+        else if (d > (*p)->data)
+        {
+            AVLVertex* rightPtr = (*p)->right;
+            DeleteAVL(d, &rightPtr);
+            (*p)->right = rightPtr;
+            if (_delete) BL(p);
+        }
         else
         {
+            AVLVertex* q = *p;
 
+            if (q->right == null)
+            {
+                *p = q->left;
+                _delete = true;
+                Marshal.FreeHGlobal((IntPtr)q);
+            }
+            else if (q->left == null)
+            {
+                *p = q->right;
+                _delete = true;
+                Marshal.FreeHGlobal((IntPtr)q);
+            }
+            else
+            {
+                AVLVertex** s = &q->left;
+                while ((*s)->right != null)
+                {
+                    s = &(*s)->right;
+                }
+
+                AVLVertex* maxNode = *s;
+                q->data = maxNode->data;
+                *s = maxNode->left;
+                Marshal.FreeHGlobal((IntPtr)maxNode);
+                _delete = true;
+
+                if (_delete)
+                {
+                    BR(p);
+                }
+            }
         }
     }
 
-    private AVLVertex* LL_Rotation(AVLVertex* p)
+    private static void BL(AVLVertex** p)
+    {
+        if (*p == null) return;
+
+        if ((*p)->bal == -1)
+        {
+            (*p)->bal = 0;
+        }
+        else if ((*p)->bal == 0)
+        {
+            (*p)->bal = 1;
+            _delete = false;
+        }
+        else
+        {
+            AVLVertex* q = (*p)->right;
+            if (q != null)
+            {
+                int b = q->bal;
+
+                if (b >= 0)
+                {
+                    RRDelete(p);
+                    if (b == 0) _delete = false;
+                }
+                else
+                {
+                    RLDelete(p);
+                }
+            }
+        }
+    }
+
+    private static void BR(AVLVertex** p)
+    {
+        if (*p == null) return;
+
+        if ((*p)->bal == 1)
+        {
+            (*p)->bal = 0;
+        }
+        else if ((*p)->bal == 0)
+        {
+            (*p)->bal = -1;
+            _delete = false;
+        }
+        else
+        {
+            AVLVertex* q = (*p)->left;
+            if (q != null)
+            {
+                int b = q->bal;
+
+                if (b <= 0)
+                {
+                    LLDelete(p);
+                    if (b == 0) _delete = false;
+                }
+                else
+                {
+                    LRDelete(p);
+                }
+            }
+        }
+    }
+
+    private static void LLDelete(AVLVertex** p)
+    {
+        AVLVertex* q = (*p)->left;
+        (*p)->left = q->right;
+        q->right = *p;
+
+        if (q->bal == 0)
+        {
+            (*p)->bal = -1;
+            q->bal = 1;
+            _delete = false;
+        }
+        else
+        {
+            (*p)->bal = 0;
+            q->bal = 0;
+        }
+
+        *p = q;
+        RotationCount++;
+    }
+
+    private static void RRDelete(AVLVertex** p)
+    {
+        AVLVertex* q = (*p)->right;
+        (*p)->right = q->left;
+        q->left = *p;
+
+        if (q->bal == 0)
+        {
+            (*p)->bal = 1;
+            q->bal = -1;
+            _delete = false;
+        }
+        else
+        {
+            (*p)->bal = 0;
+            q->bal = 0;
+        }
+
+        *p = q;
+        RotationCount++;
+    }
+
+    private static void LRDelete(AVLVertex** p)
+    {
+        AVLVertex* q = (*p)->left;
+        AVLVertex* r = q->right;
+
+        q->right = r->left;
+        r->left = q;
+        (*p)->left = r->right;
+        r->right = *p;
+
+        if (r->bal < 0)
+            (*p)->bal = 1;
+        else
+            (*p)->bal = 0;
+
+        if (r->bal > 0)
+            q->bal = -1;
+        else
+            q->bal = 0;
+
+        r->bal = 0;
+        *p = r;
+        RotationCount++;
+    }
+
+    private static void RLDelete(AVLVertex** p)
+    {
+        AVLVertex* q = (*p)->right;
+        AVLVertex* r = q->left;
+
+        q->left = r->right;
+        r->right = q;
+        (*p)->right = r->left;
+        r->left = *p;
+
+        if (r->bal > 0)
+            (*p)->bal = -1;
+        else
+            (*p)->bal = 0;
+
+        if (r->bal < 0)
+            q->bal = 1;
+        else
+            q->bal = 0;
+
+        r->bal = 0;
+        *p = r;
+        RotationCount++;
+    }
+
+    private static AVLVertex* LL1(AVLVertex* p)
     {
         AVLVertex* q = p->left;
-        p->bal = 0;
-        q->bal = 0;
         p->left = q->right;
         q->right = p;
-        return q;
-    }
-
-    private AVLVertex* RR_Rotation(AVLVertex* p)
-    {
-        AVLVertex* q = p->right;
         p->bal = 0;
         q->bal = 0;
-        p->right = q->left;
-        q->left = p;
         return q;
     }
 
-    private AVLVertex* LR_Rotation(AVLVertex* p)
+    private static AVLVertex* RR1(AVLVertex* p)
+    {
+        AVLVertex* q = p->right;
+        p->right = q->left;
+        q->left = p;
+        p->bal = 0;
+        q->bal = 0;
+        return q;
+    }
+
+    private static AVLVertex* LR1(AVLVertex* p)
     {
         AVLVertex* q = p->left;
         AVLVertex* r = q->right;
@@ -150,11 +387,10 @@ public unsafe class AVLTree
         r->left = q;
         r->right = p;
         r->bal = 0;
-
         return r;
     }
 
-    private AVLVertex* RL_Rotation(AVLVertex* p)
+    private static AVLVertex* RL1(AVLVertex* p)
     {
         AVLVertex* q = p->right;
         AVLVertex* r = q->left;
@@ -174,22 +410,54 @@ public unsafe class AVLTree
         r->right = q;
         r->left = p;
         r->bal = 0;
-
         return r;
     }
 
-    private AVLVertex* AllocateMemory()
+    public static bool Contains(int data)
+    {
+        return Contains(root, data);
+    }
+
+    private static bool Contains(AVLVertex* p, int data)
+    {
+        if (p == null) return false;
+        if (data == p->data) return true;
+        if (data < p->data) return Contains(p->left, data);
+        return Contains(p->right, data);
+    }
+
+    public static void PrintStatistics()
+    {
+        Console.WriteLine("\nСТАТИСТИКА");
+        Console.WriteLine($"Добавлений: {InsertCount}");
+        Console.WriteLine($"Удалений: {DeleteCount}");
+        Console.WriteLine($"Поворотов: {RotationCount}");
+        
+        if (InsertCount > 0)
+        {
+            double insertRotationRatio = (double)RotationCount / InsertCount;
+            Console.WriteLine($"Соотношение поворотов/вставок: {insertRotationRatio:F4}");
+        }
+        
+        if (DeleteCount > 0)
+        {
+            double deleteRotationRatio = (double)RotationCount / DeleteCount;
+            Console.WriteLine($"Соотношение поворотов/удалений: {deleteRotationRatio:F4}");
+        }
+    }
+
+    private static AVLVertex* AllocateMemory()
     {
         return (AVLVertex*)Marshal.AllocHGlobal(sizeof(AVLVertex));
     }
 
-    public void FreeMemory()
+    public static void FreeMemory()
     {
         FreeMemory(root);
         root = null;
     }
 
-    private void FreeMemory(AVLVertex* p)
+    private static void FreeMemory(AVLVertex* p)
     {
         if (p != null)
         {
@@ -199,15 +467,14 @@ public unsafe class AVLTree
         }
     }
 
-
-    public void PrintInOrder()
+    public static void PrintInOrder()
     {
-        Console.Write("Обход слева направо: ");
+        Console.Write("In-order: ");
         PrintInOrder(root);
         Console.WriteLine();
     }
 
-    private void PrintInOrder(AVLVertex* p)
+    private static void PrintInOrder(AVLVertex* p)
     {
         if (p != null)
         {
@@ -217,48 +484,30 @@ public unsafe class AVLTree
         }
     }
 
-
-    public int CalculateTreeSize() => CalculateTreeSize(root);
-    private int CalculateTreeSize(AVLVertex* root)
+    public static void DisplayTree(string title = "")
     {
-        if (root == null) return 0;
-        return 1 + CalculateTreeSize(root->left) + CalculateTreeSize(root->right);
+        string filename = $"avl_tree_{DateTime.Now:HHmmssfff}.dot";
+        GenerateDotFile(filename, title);
+
+        try
+        {
+            string pngFilename = filename.Replace(".dot", ".png");
+            using (Process dotProcess = Process.Start("dot", $"-Tpng -Gdpi=150 {filename} -o {pngFilename}"))
+            {
+                dotProcess.WaitForExit();
+                if (dotProcess.ExitCode == 0 && File.Exists(pngFilename))
+                {
+                    Console.WriteLine($"Файл сохранён: {pngFilename}");
+                }
+            }
+        }
+        catch
+        {
+            Console.WriteLine("Graphviz не установлен.");
+        }
     }
 
-    public int CalculateChecksum() => CalculateChecksum(root);
-    private int CalculateChecksum(AVLVertex* root)
-    {
-        if (root == null) return 0;
-        return root->data + CalculateChecksum(root->left) + CalculateChecksum(root->right);
-    }
-
-    public int CalculateTreeHeight() => CalculateTreeHeight(root);
-    private int CalculateTreeHeight(AVLVertex* root)
-    {
-        if (root == null) return 0;
-        int leftHeight = CalculateTreeHeight(root->left);
-        int rightHeight = CalculateTreeHeight(root->right);
-        return 1 + Math.Max(leftHeight, rightHeight);
-    }
-
-    public double CalculateAverageHeight()
-    {
-        int totalDepth = 0;
-        int nodeCount = 0;
-        CalculateTotalDepth(root, 1, ref totalDepth, ref nodeCount);
-        return nodeCount > 0 ? (double)totalDepth / nodeCount : 0;
-    }
-
-    private void CalculateTotalDepth(AVLVertex* root, int currentDepth, ref int totalDepth, ref int nodeCount)
-    {
-        if (root == null) return;
-        totalDepth += currentDepth;
-        nodeCount++;
-        CalculateTotalDepth(root->left, currentDepth + 1, ref totalDepth, ref nodeCount);
-        CalculateTotalDepth(root->right, currentDepth + 1, ref totalDepth, ref nodeCount);
-    }
-
-    public void GenerateDotFile(string filename, string title = "")
+    private static void GenerateDotFile(string filename, string title = "")
     {
         using (StreamWriter file = new StreamWriter(filename))
         {
@@ -268,15 +517,8 @@ public unsafe class AVLTree
 
             if (!string.IsNullOrEmpty(title))
                 file.WriteLine($"  label=\"{title}\";");
-            
             file.WriteLine("  labelloc=\"t\";");
             file.WriteLine("  fontsize=16;");
-
-
-            file.WriteLine("    label=\"Баланс\"; style=filled; color=black;");
-            file.WriteLine("    node [shape=record, width=1.5];");
-            file.WriteLine("    legend [label=\"<left> bal<0 | <balanced> bal=0 | <right> bal>0\"];");
-            file.WriteLine("  }");
 
             if (root != null)
             {
@@ -287,15 +529,16 @@ public unsafe class AVLTree
         }
     }
 
-    private void WriteDotRecursive(StreamWriter writer, AVLVertex* root)
+    private static void WriteDotRecursive(StreamWriter writer, AVLVertex* root)
     {
         if (root == null) return;
 
         string nodeColor = "white";
-        if (root->bal < 0) nodeColor = "white";
-        else if (root->bal > 0) nodeColor = "white";
+        if (root->bal < 0) nodeColor = "lightblue";
+        else if (root->bal > 0) nodeColor = "lightcoral";
+        else nodeColor = "lightgreen";
 
-        writer.WriteLine($"  node{root->data} [label=\"{root->data}\\nbal={root->bal}\", color={nodeColor}];");
+        writer.WriteLine($"  node{root->data} [label=\"{root->data}\\nbal={root->bal}\", fillcolor={nodeColor}];");
 
         if (root->left != null)
         {
@@ -309,236 +552,85 @@ public unsafe class AVLTree
             WriteDotRecursive(writer, root->right);
         }
     }
-
-    public void DisplayTree(string title = "")
-    {
-        string filename = "avl_tree.dot";
-        GenerateDotFile(filename, title);
-        
-        // try
-        // {
-        //     using (Process dotProcess = Process.Start("dot", $"-Tpng -Gdpi=150 {filename} -o {filename}.png"))
-        //     {
-        //         dotProcess.WaitForExit();
-        //         if (dotProcess.ExitCode == 0 && File.Exists($"{filename}.png"))
-        //         {
-        //             Console.WriteLine($"Графическое изображение сохранено как {filename}.png");
-
-        //             Process.Start(new ProcessStartInfo { FileName = $"{filename}.png", UseShellExecute = true });
-        //         }
-        //     }
-        // }
-        // catch (Exception ex)
-        // {
-        //     Console.WriteLine($"Ошибка визуализации: {ex.Message}");
-        //     Console.WriteLine("Установите Graphviz для графического отображения");
-        // }
-    }
 }
 
-
-public unsafe class ISDPTree
-{
-    public struct ISDPVertex
-    {
-        public int data;
-        public ISDPVertex* left;
-        public ISDPVertex* right;
-    }
-
-    public ISDPVertex* root;
-
-    public void BuildISDP(int[] data)
-    {
-        if (data == null || data.Length == 0)
-        {
-            root = null;
-            return;
-        }
-
-
-        int[] sortedData = new int[data.Length];
-        Array.Copy(data, sortedData, data.Length);
-        Array.Sort(sortedData);
-        
-
-        FreeMemory();
-        
-
-        root = BuildBalancedTree(sortedData, 0, sortedData.Length - 1);
-    }
-
-    private ISDPVertex* BuildBalancedTree(int[] sortedData, int start, int end)
-    {
-        if (start > end)
-            return null;
-
-
-        int mid = start + (end - start) / 2;
-        
-        ISDPVertex* node = AllocateMemory();
-        node->data = sortedData[mid];
-        
-
-        node->left = BuildBalancedTree(sortedData, start, mid - 1);
-        node->right = BuildBalancedTree(sortedData, mid + 1, end);
-        
-        return node;
-    }
-
-    private ISDPVertex* AllocateMemory()
-    {
-        return (ISDPVertex*)Marshal.AllocHGlobal(sizeof(ISDPVertex));
-    }
-
-    public void FreeMemory()
-    {
-        FreeMemory(root);
-        root = null;
-    }
-
-    private void FreeMemory(ISDPVertex* p)
-    {
-        if (p != null)
-        {
-            FreeMemory(p->left);
-            FreeMemory(p->right);
-            Marshal.FreeHGlobal((IntPtr)p);
-        }
-    }
-
-    public void PrintInOrder()
-    {
-        Console.Write("Обход ИСДП слева направо: ");
-        PrintInOrder(root);
-        Console.WriteLine();
-    }
-
-    private void PrintInOrder(ISDPVertex* p)
-    {
-        if (p != null)
-        {
-            PrintInOrder(p->left);
-            Console.Write($"{p->data} ");
-            PrintInOrder(p->right);
-        }
-    }
-
-
-    public int CalculateTreeSize() => CalculateTreeSize(root);
-    private int CalculateTreeSize(ISDPVertex* root)
-    {
-        if (root == null) return 0;
-        return 1 + CalculateTreeSize(root->left) + CalculateTreeSize(root->right);
-    }
-
-    public int CalculateChecksum() => CalculateChecksum(root);
-    private int CalculateChecksum(ISDPVertex* root)
-    {
-        if (root == null) return 0;
-        return root->data + CalculateChecksum(root->left) + CalculateChecksum(root->right);
-    }
-
-    public int CalculateTreeHeight() => CalculateTreeHeight(root);
-    private int CalculateTreeHeight(ISDPVertex* root)
-    {
-        if (root == null) return 0;
-        int leftHeight = CalculateTreeHeight(root->left);
-        int rightHeight = CalculateTreeHeight(root->right);
-        return 1 + Math.Max(leftHeight, rightHeight);
-    }
-
-    public double CalculateAverageHeight()
-    {
-        int totalDepth = 0;
-        int nodeCount = 0;
-        CalculateTotalDepth(root, 1, ref totalDepth, ref nodeCount);
-        return nodeCount > 0 ? (double)totalDepth / nodeCount : 0;
-    }
-
-    private void CalculateTotalDepth(ISDPVertex* root, int currentDepth, ref int totalDepth, ref int nodeCount)
-    {
-        if (root == null) return;
-        totalDepth += currentDepth;
-        nodeCount++;
-        CalculateTotalDepth(root->left, currentDepth + 1, ref totalDepth, ref nodeCount);
-        CalculateTotalDepth(root->right, currentDepth + 1, ref totalDepth, ref nodeCount);
-    }
-}
-
-[SupportedOSPlatform("windows")]
 class Program
 {
-
-    [SupportedOSPlatform("windows")]
-    static void Main(string[] args)
+    static unsafe void Main()
     {
-
-        Console.WriteLine("=== Сравнение АВЛ-дерева и ИСДП ===");
-        Console.WriteLine();
-
-
-       Random rand = new Random();
-    int[] randomData = new int[100];
-
-    for (int i = 0; i < 100; i++)
-    {
-        randomData[i] = i + 1; 
-    }
-
-
-    for (int i = randomData.Length - 1; i > 0; i--)
-    {
-        int j = rand.Next(i + 1);
-        int temp = randomData[i];
-        randomData[i] = randomData[j];
-        randomData[j] = temp;
-    }
-
-
-        AVLTree avlTree = new AVLTree();
-        foreach (int data in randomData)
+        List<int> numbers = new List<int>();
+        for (int i = 1; i <= 100; i++)
         {
-            avlTree.Add(data);
+            numbers.Add(i);
+        }
+        
+        Random rand = new Random();
+        for (int i = numbers.Count - 1; i > 0; i--)
+        {
+            int j = rand.Next(i + 1);
+            int temp = numbers[i];
+            numbers[i] = numbers[j];
+            numbers[j] = temp;
         }
 
+        Console.WriteLine("Добавление 100 элементов в АВЛ-дерево...");
+        
+        foreach (int number in numbers)
+        {
+            AVLTree.Add(number);
+        }
 
-        avlTree.PrintInOrder();
+        Console.WriteLine("Дерево построено из 100 элементов:");
+        AVLTree.PrintInOrder();
+        Console.WriteLine($"\nВысота дерева: {GetTreeHeight(AVLTree.root)}");
+        AVLTree.DisplayTree("Initial AVL Tree");
 
+        int deleteCount = 0;
+        Console.WriteLine("\nУдаление 10 вершин:");
+        
+        while (deleteCount < 10)
+        {
+            Console.Write($"\nВведите число для удаления ({deleteCount + 1}/10): ");
+            if (int.TryParse(Console.ReadLine(), out int val))
+            {
+                if (val >= 1 && val <= 100)
+                {
+                    if (AVLTree.Contains(val))
+                    {
+                        Console.WriteLine($"Удаление элемента {val}...");
+                        AVLTree.Delete(val);
+                        deleteCount++;
+                        
+                        Console.WriteLine($"После удаления {val}:");
+                        AVLTree.PrintInOrder();
+                        Console.WriteLine($"Высота дерева: {GetTreeHeight(AVLTree.root)}");
+                        Console.WriteLine($"Поворотов выполнено: {AVLTree.RotationCount}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Элемент не найден в дереве или уже удален");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Введите число от 1 до 100");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Некорректный ввод");
+            }
+        }
 
-        ISDPTree isdp = new ISDPTree();
+        AVLTree.PrintStatistics();
+        AVLTree.FreeMemory();
+    }
 
-        isdp.BuildISDP(randomData);
-
-
-
-
-
-        int avlSize = avlTree.CalculateTreeSize();
-        int avlChecksum = avlTree.CalculateChecksum();
-        int avlHeight = avlTree.CalculateTreeHeight();
-        double avlAvgHeight = avlTree.CalculateAverageHeight();
-
-
-        int isdpSize = isdp.CalculateTreeSize();
-        int isdpChecksum = isdp.CalculateChecksum();
-        int isdpHeight = isdp.CalculateTreeHeight();
-        double isdpAvgHeight = isdp.CalculateAverageHeight();
-
-        Console.WriteLine("\n Сравнительная таблица характеристик");
-        Console.WriteLine("+----------+--------+--------------+---------+--------------+");
-        Console.WriteLine("| n=100    | Размер | Контр. Сумма | Высота  | Средн.высота |");
-        Console.WriteLine("+----------+--------+--------------+---------+--------------+");
-        Console.WriteLine($"| ИСДП     | {isdpSize,6} | {isdpChecksum,12} | {isdpHeight,7} | {isdpAvgHeight,12:F2} |");
-        Console.WriteLine($"| АВЛ      | {avlSize,6} | {avlChecksum,12} | {avlHeight,7} | {avlAvgHeight,12:F2} |");
-        Console.WriteLine("+----------+--------+--------------+---------+--------------+");
-
-        Console.WriteLine($"Разница в высоте: {isdpHeight - avlHeight} ");
-        Console.WriteLine($"Разница в средней высоте: {isdpAvgHeight - avlAvgHeight:F2}");
-
-
-
-        avlTree.FreeMemory();
-        isdp.FreeMemory();
+    private static unsafe int GetTreeHeight(AVLVertex* root)
+    {
+        if (root == null) return 0;
+        int leftHeight = GetTreeHeight(root->left);
+        int rightHeight = GetTreeHeight(root->right);
+        return Math.Max(leftHeight, rightHeight) + 1;
     }
 }

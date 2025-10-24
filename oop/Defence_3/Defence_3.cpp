@@ -158,10 +158,10 @@ void printList_cinema(spisok2 *head){
             counter++;
             appending(zals,tmp);
         }
-        // std::cout << "task3" << std::endl;
-        // print(n, cinemas);
-        // std::cout << "task4" << std::endl;
-        // printList(zals);
+        std::cout << "task3" << std::endl;
+        print(n, cinemas);
+        std::cout << "task4" << std::endl;
+        printList(zals);
 
         F.seekg(0);
         F2.close();

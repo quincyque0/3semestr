@@ -71,13 +71,13 @@ public static unsafe class AVLTree
                 {
                     if ((*p)->left != null && (*p)->left->bal < 0)
                     {
-                        *p = LL1(*p);
+                        *p = LL(*p);
                         RotationCount++;
                         _rost = false;
                     }
                     else if ((*p)->left != null)
                     {
-                        *p = LR1(*p);
+                        *p = LR(*p);
                         RotationCount++;
                         _rost = false;
                     }
@@ -105,13 +105,13 @@ public static unsafe class AVLTree
                 {
                     if ((*p)->right != null && (*p)->right->bal > 0)
                     {
-                        *p = RR1(*p);
+                        *p = RR(*p);
                         RotationCount++;
                         _rost = false;
                     }
                     else if ((*p)->right != null)
                     {
-                        *p = RL1(*p);
+                        *p = RL(*p);
                         RotationCount++;
                         _rost = false;
                     }
@@ -127,8 +127,8 @@ public static unsafe class AVLTree
         DeleteAVL(data, &rootPtr);
         root = rootPtr;
         if (_delete) DeleteCount++;
-        DisplayTree($"After deleting {data}");
     }
+
 
     private static void DeleteAVL(int d, AVLVertex** p)
     {
@@ -168,20 +168,30 @@ public static unsafe class AVLTree
             else
             {
                 AVLVertex** s = &q->left;
-                while ((*s)->right != null)
+
+                while (*s != null && (*s)->right != null)
                 {
                     s = &(*s)->right;
                 }
 
-                AVLVertex* maxNode = *s;
-                q->data = maxNode->data;
-                *s = maxNode->left;
-                Marshal.FreeHGlobal((IntPtr)maxNode);
-                _delete = true;
-
-                if (_delete)
+                if (*s == null)
                 {
-                    BR(p);
+                    *p = q->right;
+                    _delete = true;
+                    Marshal.FreeHGlobal((IntPtr)q);
+                }
+                else
+                {
+                    AVLVertex* maxNode = *s;
+                    q->data = maxNode->data;
+                    *s = maxNode->left;
+                    Marshal.FreeHGlobal((IntPtr)maxNode);
+                    _delete = true;
+
+                    if (_delete)
+                    {
+                        BR(p);
+                    }
                 }
             }
         }
@@ -209,12 +219,15 @@ public static unsafe class AVLTree
 
                 if (b >= 0)
                 {
-                    RRDelete(p);
+                    RR1(p);
                     if (b == 0) _delete = false;
                 }
                 else
                 {
-                    RLDelete(p);
+                    if (q->left != null)
+                    {
+                        RLDelete(p);
+                    }
                 }
             }
         }
@@ -242,18 +255,21 @@ public static unsafe class AVLTree
 
                 if (b <= 0)
                 {
-                    LLDelete(p);
+                    LL1(p);
                     if (b == 0) _delete = false;
                 }
                 else
                 {
-                    LRDelete(p);
+                    if (q->right != null)
+                    {
+                        LRDelete(p);
+                    }
                 }
             }
         }
     }
 
-    private static void LLDelete(AVLVertex** p)
+    private static void LL1(AVLVertex** p)
     {
         AVLVertex* q = (*p)->left;
         (*p)->left = q->right;
@@ -275,7 +291,7 @@ public static unsafe class AVLTree
         RotationCount++;
     }
 
-    private static void RRDelete(AVLVertex** p)
+    private static void RR1(AVLVertex** p)
     {
         AVLVertex* q = (*p)->right;
         (*p)->right = q->left;
@@ -299,7 +315,11 @@ public static unsafe class AVLTree
 
     private static void LRDelete(AVLVertex** p)
     {
+        if (*p == null || (*p)->left == null) return;
+
         AVLVertex* q = (*p)->left;
+        if (q->right == null) return;
+
         AVLVertex* r = q->right;
 
         q->right = r->left;
@@ -324,7 +344,11 @@ public static unsafe class AVLTree
 
     private static void RLDelete(AVLVertex** p)
     {
+        if (*p == null || (*p)->right == null) return;
+
         AVLVertex* q = (*p)->right;
+        if (q->left == null) return;
+
         AVLVertex* r = q->left;
 
         q->left = r->right;
@@ -347,7 +371,7 @@ public static unsafe class AVLTree
         RotationCount++;
     }
 
-    private static AVLVertex* LL1(AVLVertex* p)
+    private static AVLVertex* LL(AVLVertex* p)
     {
         AVLVertex* q = p->left;
         p->left = q->right;
@@ -357,7 +381,7 @@ public static unsafe class AVLTree
         return q;
     }
 
-    private static AVLVertex* RR1(AVLVertex* p)
+    private static AVLVertex* RR(AVLVertex* p)
     {
         AVLVertex* q = p->right;
         p->right = q->left;
@@ -367,7 +391,7 @@ public static unsafe class AVLTree
         return q;
     }
 
-    private static AVLVertex* LR1(AVLVertex* p)
+    private static AVLVertex* LR(AVLVertex* p)
     {
         AVLVertex* q = p->left;
         AVLVertex* r = q->right;
@@ -390,7 +414,7 @@ public static unsafe class AVLTree
         return r;
     }
 
-    private static AVLVertex* RL1(AVLVertex* p)
+    private static AVLVertex* RL(AVLVertex* p)
     {
         AVLVertex* q = p->right;
         AVLVertex* r = q->left;
@@ -426,25 +450,7 @@ public static unsafe class AVLTree
         return Contains(p->right, data);
     }
 
-    public static void PrintStatistics()
-    {
-        Console.WriteLine("\nСТАТИСТИКА");
-        Console.WriteLine($"Добавлений: {InsertCount}");
-        Console.WriteLine($"Удалений: {DeleteCount}");
-        Console.WriteLine($"Поворотов: {RotationCount}");
-        
-        if (InsertCount > 0)
-        {
-            double insertRotationRatio = (double)RotationCount / InsertCount;
-            Console.WriteLine($"Соотношение поворотов/вставок: {insertRotationRatio:F4}");
-        }
-        
-        if (DeleteCount > 0)
-        {
-            double deleteRotationRatio = (double)RotationCount / DeleteCount;
-            Console.WriteLine($"Соотношение поворотов/удалений: {deleteRotationRatio:F4}");
-        }
-    }
+
 
     private static AVLVertex* AllocateMemory()
     {
@@ -483,75 +489,6 @@ public static unsafe class AVLTree
             PrintInOrder(p->right);
         }
     }
-
-    public static void DisplayTree(string title = "")
-    {
-        string filename = $"avl_tree_{DateTime.Now:HHmmssfff}.dot";
-        GenerateDotFile(filename, title);
-
-        try
-        {
-            string pngFilename = filename.Replace(".dot", ".png");
-            using (Process dotProcess = Process.Start("dot", $"-Tpng -Gdpi=150 {filename} -o {pngFilename}"))
-            {
-                dotProcess.WaitForExit();
-                if (dotProcess.ExitCode == 0 && File.Exists(pngFilename))
-                {
-                    Console.WriteLine($"Файл сохранён: {pngFilename}");
-                }
-            }
-        }
-        catch
-        {
-            Console.WriteLine("Graphviz не установлен.");
-        }
-    }
-
-    private static void GenerateDotFile(string filename, string title = "")
-    {
-        using (StreamWriter file = new StreamWriter(filename))
-        {
-            file.WriteLine("digraph G {");
-            file.WriteLine("  node [shape=circle, style=filled, fontcolor=black];");
-            file.WriteLine("  edge [color=black, arrowhead=vee];");
-
-            if (!string.IsNullOrEmpty(title))
-                file.WriteLine($"  label=\"{title}\";");
-            file.WriteLine("  labelloc=\"t\";");
-            file.WriteLine("  fontsize=16;");
-
-            if (root != null)
-            {
-                WriteDotRecursive(file, root);
-            }
-
-            file.WriteLine("}");
-        }
-    }
-
-    private static void WriteDotRecursive(StreamWriter writer, AVLVertex* root)
-    {
-        if (root == null) return;
-
-        string nodeColor = "white";
-        if (root->bal < 0) nodeColor = "lightblue";
-        else if (root->bal > 0) nodeColor = "lightcoral";
-        else nodeColor = "lightgreen";
-
-        writer.WriteLine($"  node{root->data} [label=\"{root->data}\\nbal={root->bal}\", fillcolor={nodeColor}];");
-
-        if (root->left != null)
-        {
-            writer.WriteLine($"  node{root->data} -> node{root->left->data} [label=\"L\"];");
-            WriteDotRecursive(writer, root->left);
-        }
-
-        if (root->right != null)
-        {
-            writer.WriteLine($"  node{root->data} -> node{root->right->data} [label=\"R\"];");
-            WriteDotRecursive(writer, root->right);
-        }
-    }
 }
 
 class Program
@@ -563,7 +500,7 @@ class Program
         {
             numbers.Add(i);
         }
-        
+
         Random rand = new Random();
         for (int i = numbers.Count - 1; i > 0; i--)
         {
@@ -574,7 +511,7 @@ class Program
         }
 
         Console.WriteLine("Добавление 100 элементов в АВЛ-дерево...");
-        
+
         foreach (int number in numbers)
         {
             AVLTree.Add(number);
@@ -583,11 +520,10 @@ class Program
         Console.WriteLine("Дерево построено из 100 элементов:");
         AVLTree.PrintInOrder();
         Console.WriteLine($"\nВысота дерева: {GetTreeHeight(AVLTree.root)}");
-        AVLTree.DisplayTree("Initial AVL Tree");
 
         int deleteCount = 0;
         Console.WriteLine("\nУдаление 10 вершин:");
-        
+
         while (deleteCount < 10)
         {
             Console.Write($"\nВведите число для удаления ({deleteCount + 1}/10): ");
@@ -600,11 +536,12 @@ class Program
                         Console.WriteLine($"Удаление элемента {val}...");
                         AVLTree.Delete(val);
                         deleteCount++;
-                        
+
                         Console.WriteLine($"После удаления {val}:");
                         AVLTree.PrintInOrder();
                         Console.WriteLine($"Высота дерева: {GetTreeHeight(AVLTree.root)}");
                         Console.WriteLine($"Поворотов выполнено: {AVLTree.RotationCount}");
+                        Console.WriteLine($"Удалений зафиксировано: {AVLTree.DeleteCount}");
                     }
                     else
                     {
@@ -622,7 +559,6 @@ class Program
             }
         }
 
-        AVLTree.PrintStatistics();
         AVLTree.FreeMemory();
     }
 
